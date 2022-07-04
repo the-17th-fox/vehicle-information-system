@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Web", "Web\Web.csproj", "{781E443C-6998-48D2-9880-9D5D7861E612}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web", "Web\Web.csproj", "{781E443C-6998-48D2-9880-9D5D7861E612}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AccountsService", "AccountsService\AccountsService.csproj", "{3147E8CE-284F-4885-B6CB-0730ED8ABEE8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{781E443C-6998-48D2-9880-9D5D7861E612}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{781E443C-6998-48D2-9880-9D5D7861E612}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{781E443C-6998-48D2-9880-9D5D7861E612}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3147E8CE-284F-4885-B6CB-0730ED8ABEE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3147E8CE-284F-4885-B6CB-0730ED8ABEE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3147E8CE-284F-4885-B6CB-0730ED8ABEE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3147E8CE-284F-4885-B6CB-0730ED8ABEE8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
