@@ -43,4 +43,3 @@ namespace AccountsService.Infrastructure.Context
         }
     }
 }
-}
