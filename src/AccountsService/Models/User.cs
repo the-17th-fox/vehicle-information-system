@@ -4,8 +4,8 @@ namespace AccountsService.Models
 {
     public class User : IdentityUser<Guid>
     {
-        public DateTime CreatedOn { get; private set; } = DateTime.UtcNow;
-        public DateTime LastUpdated { get; private set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
         public bool IsDeleted { get; set; }
     }
 }
