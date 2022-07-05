@@ -1,9 +1,15 @@
-using AccountsService.Auth;
+using AccountsService.Constants.Auth;
 using AccountsService.Infrastructure.Context;
 using AccountsService.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//Database
+
+builder.Services.AddDbContext<AccountsServiceContext>(opt =>
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("DatabaseConnection")));
 
 //Identity
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
