@@ -1,4 +1,5 @@
-﻿using AccountsService.Models;
+﻿using AccountsService.Constants.Auth;
+using AccountsService.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,15 @@ namespace AccountsService.Infrastructure.Context
         public AccountsServiceContext(DbContextOptions<AccountsServiceContext> opt) : base(opt) 
         {
             Database.EnsureCreated();
+        }
+
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            base.OnModelCreating(builder);
+
+            var roles = AccountsRoles.GetRoles();
+
+            builder.Entity<IdentityRole<Guid>>().HasData(roles);
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
