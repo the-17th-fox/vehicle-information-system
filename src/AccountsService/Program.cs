@@ -1,17 +1,22 @@
 using AccountsService.Constants.Auth;
 using AccountsService.Infrastructure.Context;
 using AccountsService.Models;
+using AccountsService.Services;
+using AccountsService.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 //Database
-
 builder.Services.AddDbContext<AccountsServiceContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("DatabaseConnection")));
 
-//Identity
+//Services
+builder.Services.AddAutoMapper(typeof(MapperProfile));
+builder.Services.AddScoped<IAccountsSvc, AccountsSvc>();
+
+//Auth section
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
 {
     options.Password.RequiredLength = 5;
@@ -22,7 +27,6 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
     options.User.RequireUniqueEmail = true;
 }).AddEntityFrameworkStores<AccountsServiceContext>();
 
-//Authorization
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(AccountsPolicies.DefaultRights, policy =>
@@ -31,6 +35,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(AccountsPolicies.ElevatedRights, policy =>
         policy.RequireRole(AccountsRoles.Administrator));
 });
+// End of auth section
 
 builder.Services.AddControllers();
 
