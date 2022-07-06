@@ -1,4 +1,5 @@
-﻿using AccountsService.Models;
+﻿using AccountsService.Constants.Logger;
+using AccountsService.Models;
 using AccountsService.Services;
 using AccountsService.Utilities;
 using AccountsService.ViewModels;
@@ -21,10 +22,12 @@ namespace AccountsService.Controllers
     {
         private readonly IAccountsSvc _accountsSvc;
         private readonly IMapper _mapper;
-        public DefaultAccountsController(IAccountsSvc accountsSvc, IMapper mapper)
+        private readonly ILogger<DefaultAccountsController> _logger;
+        public DefaultAccountsController(IAccountsSvc accountsSvc, IMapper mapper, ILogger<DefaultAccountsController> logger)
         {
             _accountsSvc = accountsSvc;
             _mapper = mapper;
+            _logger = logger;
         }
 
         [AllowAnonymous]
@@ -33,6 +36,8 @@ namespace AccountsService.Controllers
         {
             var user = _mapper.Map<User>(viewModel);
             await _accountsSvc.RegisterAsync(user, viewModel.Password);
+
+            _logger.LogInformation(LoggerHelper.LogUserActions(AccountLoggingActions.Registred, user));
 
             return Ok();
         }
