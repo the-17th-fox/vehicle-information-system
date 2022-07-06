@@ -1,5 +1,4 @@
-﻿using AccountsService.Constants.ErrorMessages;
-
+﻿using AccountsService.ViewModels.ErrorMessages;
 using System.ComponentModel.DataAnnotations;
 
 namespace AccountsService.ViewModels
