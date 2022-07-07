@@ -23,11 +23,17 @@ namespace AccountsService.Controllers
         private readonly IAccountsSvc _accountsSvc;
         private readonly IMapper _mapper;
         private readonly ILogger<DefaultAccountsController> _logger;
-        public DefaultAccountsController(IAccountsSvc accountsSvc, IMapper mapper, ILogger<DefaultAccountsController> logger)
+        private readonly IOptions<JwtConfigugartionModel> _jwtConfig;
+        public DefaultAccountsController(
+            IAccountsSvc accountsSvc, 
+            IMapper mapper, 
+            ILogger<DefaultAccountsController> logger,
+            IOptions<JwtConfigugartionModel> jwtConfig)
         {
             _accountsSvc = accountsSvc;
             _mapper = mapper;
             _logger = logger;
+            _jwtConfig = jwtConfig;
         }
 
         [AllowAnonymous]
@@ -40,6 +46,17 @@ namespace AccountsService.Controllers
             _logger.LogInformation(LoggerHelper.LogUserActions(AccountLoggingActions.Registred, user));
 
             return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpPost("[action]")]
+        public async Task<IActionResult> LoginAsync([FromBody] LoginViewModel viewModel)
+        {
+            var token = await _accountsSvc.LoginAsync(viewModel.Email, viewModel.Password, _jwtConfig);
+
+            // todo: add logging
+
+            return Ok(token);
         }
     }
 }
