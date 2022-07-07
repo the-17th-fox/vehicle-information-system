@@ -17,7 +17,7 @@ namespace AccountsService.Infrastructure.Context
         {
             base.OnModelCreating(builder);
 
-            var roles = AccountsRoles.GetRoles();
+            var roles = AccountsRoles.Roles;
 
             builder.Entity<IdentityRole<Guid>>().HasData(roles);
         }
