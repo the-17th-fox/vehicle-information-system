@@ -1,4 +1,5 @@
 using AccountsService.Constants.Auth;
+using AccountsService.Exceptions;
 using AccountsService.Infrastructure.Context;
 using AccountsService.Models;
 using AccountsService.Services;
@@ -53,6 +54,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseMiddleware<GlobalExceptionsHandler>();
 
 app.MapControllers();
 
