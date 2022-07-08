@@ -22,7 +22,7 @@ namespace AccountsService.Services
             var result = await _userManager.CreateAsync(user, password);
             if(!result.Succeeded)
             {
-                throw new RegistrationFailedException($"{result.Errors.First().Description}");
+                throw new InvalidParamsException($"{result.Errors.First<IdentityError>().Description}");
             }
             _logger.LogInformation(LoggingForms.Registred, user.UserName, user.Email);
 
@@ -30,7 +30,7 @@ namespace AccountsService.Services
             result = await _userManager.AddToRoleAsync(user, AccountsRoles.DefaultUser);
             if(!result.Succeeded)
             {
-                throw new RegistrationFailedException($"{result.Errors.First().Description}");
+                throw new Exception($"{result.Errors.First<IdentityError>().Description}");
             }
             _logger.LogInformation(LoggingForms.AddedToRole, user.UserName, user.Email, AccountsRoles.DefaultUser);
         }
