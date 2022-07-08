@@ -34,14 +34,14 @@ namespace AccountsService.Exceptions
                         _logger.LogTrace(LoggingForms.ExceptionForm, exception.GetType().Name, response.StatusCode, exception.Message);
                         break;
 
-                    case RegistrationFailedException:
-                        _logger.LogTrace(LoggingForms.ExceptionForm, exception.GetType().Name, response.StatusCode, exception.Message);
+                    case CustomExceptions.InvalidParamsException:
                         response.StatusCode = (int)HttpStatusCode.BadRequest;
+                        _logger.LogTrace(LoggingForms.ExceptionForm, exception.GetType().Name, response.StatusCode, exception.Message);
                         break;
 
                     default:
-                        _logger.LogWarning(LoggingForms.ExceptionForm, exception.GetType().Name, response.StatusCode, exception.Message);
                         response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                        _logger.LogWarning(LoggingForms.ExceptionForm, exception.GetType().Name, response.StatusCode, exception.Message);
                         break;
                 }
 
