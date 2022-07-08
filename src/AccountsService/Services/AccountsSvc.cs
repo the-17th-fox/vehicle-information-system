@@ -66,6 +66,51 @@ namespace AccountsService.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        public List<Claim> GetClaims(User user, IList<string> userRoles)
+        {
+            var claims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            };
+
+            foreach (var role in userRoles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            return claims;
+        }
+
+        public JwtSecurityToken CreateSecurityToken(IOptions<JwtConfigugartionModel> securityConfig, List<Claim> claims)
+        {
+            return new(
+                issuer: securityConfig.Value.Issuer,
+                audience: securityConfig.Value.Audience,
+                notBefore: DateTime.UtcNow,
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(securityConfig.Value.LifetimeHours));
+        }
+
+        public async Task<string> LoginAsync(string email, string password, IOptions<JwtConfigugartionModel> securityConfig)
+        {
+            // todo: add logging to this method
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user is null)
+            {
+                throw new NotImplementedException();
+            }
+
+            if (!await _userManager.CheckPasswordAsync(user, password))
+            {
+                throw new NotImplementedException();
+            }
+
+            var userClaims = GetClaims(user, await _userManager.GetRolesAsync(user));
+            var token = CreateSecurityToken(securityConfig, userClaims);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
         public async Task RegisterAsync(User user, string password)
         {
             var result = await _userManager.CreateAsync(user, password);
