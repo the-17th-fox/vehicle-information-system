@@ -34,8 +34,13 @@ namespace AccountsService.Exceptions
                         _logger.LogTrace(LoggingForms.ExceptionForm, exception.GetType().Name, response.StatusCode, exception.Message);
                         break;
 
-                    case CustomExceptions.InvalidParamsException:
+                    case InvalidParamsException:
                         response.StatusCode = (int)HttpStatusCode.BadRequest;
+                        _logger.LogTrace(LoggingForms.ExceptionForm, exception.GetType().Name, response.StatusCode, exception.Message);
+                        break;
+
+                    case UnauthorizedException:
+                        response.StatusCode = (int)HttpStatusCode.Unauthorized;
                         _logger.LogTrace(LoggingForms.ExceptionForm, exception.GetType().Name, response.StatusCode, exception.Message);
                         break;
 
