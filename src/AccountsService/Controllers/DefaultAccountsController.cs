@@ -37,7 +37,8 @@ namespace AccountsService.Controllers
             var user = _mapper.Map<User>(viewModel);
             await _accountsSvc.RegisterAsync(user, viewModel.Password);
 
-            _logger.LogInformation(LoggerHelper.LogUserActions(AccountLoggingActions.Registred, user));
+            // todo: Replace with with more wide-meaning logging form
+            //_logger.LogInformation(LoggingHelper.LogUserActions(LoggingForms.Registred, user));
 
             return Ok();
         }
