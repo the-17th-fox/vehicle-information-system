@@ -40,11 +40,12 @@ namespace AccountsService.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegistrationViewModel viewModel)
         {
+            _logger.LogInformation(LoggingForms.RegistrationAttempt, viewModel.UserName, viewModel.Email);
+
             var user = _mapper.Map<User>(viewModel);
             await _accountsSvc.RegisterAsync(user, viewModel.Password);
 
-            // todo: Replace with with more wide-meaning logging form
-            //_logger.LogInformation(LoggingHelper.LogUserActions(LoggingForms.Registred, user));
+            _logger.LogInformation(LoggingForms.Registred, user.UserName, user.Email);
 
             return Ok();
         }
@@ -53,9 +54,11 @@ namespace AccountsService.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> LoginAsync([FromBody] LoginViewModel viewModel)
         {
+            _logger.LogInformation(LoggingForms.LoginAttempt, viewModel.Email);
+
             var token = await _accountsSvc.LoginAsync(viewModel.Email, viewModel.Password, _jwtConfig);
 
-            // todo: add logging
+            _logger.LogInformation(LoggingForms.LoggedIn, viewModel.Email);
 
             return Ok(token);
         }

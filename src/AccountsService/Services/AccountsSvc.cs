@@ -50,19 +50,19 @@ namespace AccountsService.Services
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null)
             {
-                throw new NotFoundException($"User with provided email was not found {email}") ;
+                _logger.LogInformation(LoggingForms.UserNotFound, email);
+                throw new NotFoundException($"User with provided email {email} was not found") ;
             }
 
             if (!await _userManager.CheckPasswordAsync(user, password))
             {
-                throw new UnauthorizedException("Invalid credentials");
+                _logger.LogInformation(LoggingForms.InvalidCredentials, email);
+                throw new UnauthorizedException();
             }
 
             var userRoles = await _userManager.GetRolesAsync(user);
             var userClaims = GetClaims(user, userRoles);
             var token = CreateSecurityToken(securityConfig, userClaims);
-
-            _logger.LogInformation(LoggingForms.LoggedIn, user.UserName, user.Email, string.Join(' ', userRoles));
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
@@ -72,17 +72,15 @@ namespace AccountsService.Services
             var result = await _userManager.CreateAsync(user, password);
             if(!result.Succeeded)
             {
+                _logger.LogInformation(LoggingForms.FailedToRegister, user.UserName, user.Email, result.Errors.First<IdentityError>().Description);
                 throw new InvalidParamsException(result.Errors.First<IdentityError>().Description);
             }
-            _logger.LogInformation(LoggingForms.Registred, user.UserName, user.Email);
-
 
             result = await _userManager.AddToRoleAsync(user, AccountsRoles.DefaultUser);
             if(!result.Succeeded)
-            {
+            {   
                 throw new Exception(result.Errors.First<IdentityError>().Description);
             }
-            _logger.LogInformation(LoggingForms.AddedToRole, user.UserName, user.Email, AccountsRoles.DefaultUser);
         }
     }
 }
