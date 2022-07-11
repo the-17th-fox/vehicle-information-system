@@ -93,6 +93,12 @@ namespace AccountsService.Services
                 throw new NotFoundException($"User with provided id [{id}] was not found");
             }
 
+            if(user.IsDeleted == true)
+            {
+                _logger.LogInformation(LoggingForms.AlreadyDeleted, id);
+                throw new Exception($"User with provided id [{id}] is already deleted");
+            }
+
             user.IsDeleted = true;
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
