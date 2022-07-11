@@ -4,8 +4,11 @@ using AccountsService.Infrastructure.Context;
 using AccountsService.Models;
 using AccountsService.Services;
 using AccountsService.Utilities;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +21,8 @@ builder.Services.AddAutoMapper(typeof(MapperProfile));
 builder.Services.AddScoped<IAccountsSvc, AccountsSvc>();
 
 //Auth section
+builder.Services.Configure<JwtConfigugartionModel>(builder.Configuration.GetSection("Jwt"));
+
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
 {
     options.Password.RequiredLength = 5;
@@ -28,6 +33,22 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
     options.User.RequireUniqueEmail = true;
 }).AddEntityFrameworkStores<AccountsServiceContext>();
 
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(opt =>
+    {
+        opt.TokenValidationParameters = new()
+        {
+            ValidateAudience = true,
+            ValidateIssuer = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(AccountsPolicies.DefaultRights, policy =>
@@ -36,7 +57,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(AccountsPolicies.ElevatedRights, policy =>
         policy.RequireRole(AccountsRoles.Administrator));
 });
-// End of auth section
+//End of auth section
 
 builder.Services.AddControllers();
 
@@ -53,6 +74,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseMiddleware<GlobalExceptionsHandler>();
