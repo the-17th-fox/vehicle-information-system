@@ -11,6 +11,10 @@
 
         public const string AddedToRole = "The user [{username}]:[{email}] was successfully added to role {role}";
 
+        public const string DeletionAttempt = "There was attempt to delete user [{id}]";
+        public const string UserDeleted = "The user [{id}] was successfully deleted";
+        public const string FailedToDelete = "The error occured during user [{id}] deletion: [{error}]";
+
         public const string UserNotFound = "The user [{email}] was not found";  
         public const string InvalidCredentials = "The user [{email}] has failed authentication";
 
