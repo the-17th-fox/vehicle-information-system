@@ -6,11 +6,10 @@
         public const string Registred = "The user [{username}]:[{email}] was successfully registred";
         public const string FailedToRegister = "The user [{username}]:[{email}] has failed the registration: [{error}]";
     
-        public const string LoginAttempt = "The user [{}] is trying to log in";
+        public const string LoginAttempt = "The user [{email}] is trying to log in";
         public const string LoggedIn = "The user [{email}] was successfully logged in";
 
         public const string AddedToRole = "The user [{username}]:[{email}] was successfully added to role {role}";
-
 
         public const string UserNotFound = "The user [{email}] was not found";  
         public const string InvalidCredentials = "The user [{email}] has failed authentication";
