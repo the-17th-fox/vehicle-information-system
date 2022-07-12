@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AccountsService.Controllers
 {
-    [Authorize(Roles = AccountsRoles.Administrator)]
+    [Authorize(Policy = AccountsPolicies.ElevatedRights)]
     [Route("api/users")]
     [ApiController]
     public class AdminAccountsController : ControllerBase
