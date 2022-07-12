@@ -4,6 +4,7 @@ using AccountsService.Exceptions.CustomExceptions;
 using AccountsService.Models;
 using AccountsService.Utilities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -80,6 +81,31 @@ namespace AccountsService.Services
             if(!result.Succeeded)
             {   
                 throw new Exception(result.Errors.First<IdentityError>().Description);
+            }
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
+            if (user is null)
+            {
+                _logger.LogInformation(LoggingForms.UserNotFound, user.Email);
+                throw new NotFoundException($"User with provided id [{id}] was not found");
+            }
+
+            if(user.IsDeleted == true)
+            {
+                _logger.LogInformation(LoggingForms.AlreadyDeleted, id);
+                throw new Exception($"User with provided id [{id}] is already deleted");
+            }
+
+            user.IsDeleted = true;
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                var error = result.Errors.First<IdentityError>().Description;
+                _logger.LogInformation(LoggingForms.FailedToDelete, id, error);
+                throw new Exception(error);
             }
         }
     }
