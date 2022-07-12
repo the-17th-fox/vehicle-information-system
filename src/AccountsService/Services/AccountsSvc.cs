@@ -49,7 +49,7 @@ namespace AccountsService.Services
         public async Task<string> LoginAsync(string email, string password, IOptions<JwtConfigugartionModel> securityConfig)
         {
             var user = await _userManager.FindByEmailAsync(email);
-            if (user is null)
+            if (user is null || user.IsDeleted)
             {
                 _logger.LogInformation(LoggingForms.UserNotFound, email);
                 throw new NotFoundException($"User with provided email {email} was not found") ;
