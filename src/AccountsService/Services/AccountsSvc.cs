@@ -6,8 +6,10 @@ using AccountsService.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 
 namespace AccountsService.Services
 {
@@ -38,12 +40,15 @@ namespace AccountsService.Services
 
         public JwtSecurityToken CreateSecurityToken(IOptions<JwtConfigugartionModel> securityConfig, List<Claim> claims)
         {
+            var symSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityConfig.Value.Key));
+
             return new(
                 issuer: securityConfig.Value.Issuer,
                 audience: securityConfig.Value.Audience,
                 notBefore: DateTime.UtcNow,
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(securityConfig.Value.LifetimeHours));
+                expires: DateTime.UtcNow.AddHours(securityConfig.Value.LifetimeHours),
+                signingCredentials: new SigningCredentials(symSecurityKey, SecurityAlgorithms.HmacSha256));
         }
 
         public async Task<string> LoginAsync(string email, string password, IOptions<JwtConfigugartionModel> securityConfig)
