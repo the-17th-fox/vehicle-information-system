@@ -1,4 +1,5 @@
-﻿using AccountsService.Constants.Logger;
+﻿using AccountsService.Constants.Auth;
+using AccountsService.Constants.Logger;
 using AccountsService.Models;
 using AccountsService.Services;
 using AccountsService.Utilities;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Security.Claims;
 
 namespace AccountsService.Controllers
 {
@@ -24,6 +26,7 @@ namespace AccountsService.Controllers
         private readonly IMapper _mapper;
         private readonly ILogger<DefaultAccountsController> _logger;
         private readonly IOptions<JwtConfigugartionModel> _jwtConfig;
+        private Guid _userId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
         public DefaultAccountsController(
             IAccountsSvc accountsSvc, 
             IMapper mapper, 
@@ -61,6 +64,19 @@ namespace AccountsService.Controllers
             _logger.LogInformation(LoggingForms.LoggedIn, viewModel.Email);
 
             return Ok(token);
+        }
+
+        [Authorize(Policy = AccountsPolicies.DefaultRights)]
+        [HttpDelete("[action]")]
+        public async Task<IActionResult> DeleteAsync()
+        {
+            _logger.LogInformation(LoggingForms.DeletionAttempt, _userId);
+
+            await _accountsSvc.DeleteAsync(_userId);
+
+            _logger.LogInformation(LoggingForms.UserDeleted, _userId);
+
+            return Ok();
         }
     }
 }
