@@ -108,5 +108,17 @@ namespace AccountsService.Services
                 throw new Exception(error);
             }
         }
+
+        public async Task<List<User>> GetUsersAsync()
+        {
+            var users = await _userManager.Users.ToListAsync();
+            if(users is null)
+            {
+                _logger.LogInformation(LoggingForms.NoUsersFound);
+                throw new NotFoundException("There was no users found");
+            }
+
+            return users;
+        }
     }
 }

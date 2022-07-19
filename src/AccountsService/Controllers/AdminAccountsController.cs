@@ -1,6 +1,7 @@
 ﻿using AccountsService.Constants.Auth;
 using AccountsService.Constants.Logger;
 using AccountsService.Services;
+using AccountsService.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,6 +30,25 @@ namespace AccountsService.Controllers
             _logger.LogInformation(LoggingForms.UserDeleted, id);
 
             return Ok();
+        }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetAllUsersAsync(int pageNumber = 1, int pageSize = 20)
+        {
+            _logger.LogInformation(LoggingForms.TryingToGetUsers);
+
+            var users = await _accountsSvc.GetUsersAsync();
+            var page = new PageViewModel(users.Count, pageNumber, pageSize);
+            users = users.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            var accountsVM = new AccountsViewModel()
+            {
+                PageViewModel = page,
+                Users = users
+            };
+
+            _logger.LogInformation(LoggingForms.GotUsers);
+
+            return Ok(accountsVM);
         }
     }
 }
