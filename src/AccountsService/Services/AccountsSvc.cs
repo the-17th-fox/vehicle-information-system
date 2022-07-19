@@ -23,7 +23,7 @@ namespace AccountsService.Services
             _logger = logger;
         }
 
-        public List<Claim> GetClaims(User user, IList<string> userRoles)
+        private List<Claim> GetClaims(User user, IList<string> userRoles)
         {
             var claims = new List<Claim>()
             {
@@ -38,7 +38,7 @@ namespace AccountsService.Services
             return claims;
         }
 
-        public JwtSecurityToken CreateSecurityToken(IOptions<JwtConfigugartionModel> securityConfig, List<Claim> claims)
+        private JwtSecurityToken CreateSecurityToken(IOptions<JwtConfigugartionModel> securityConfig, List<Claim> claims)
         {
             var symSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityConfig.Value.Key));
 
