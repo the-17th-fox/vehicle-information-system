@@ -1,0 +1,28 @@
+name: Build on PR
+
+on:
+  pull_request:
+    paths: 
+      - '**.cs'
+    types: [synchronize, opened, reopened]
+    branches:
+      - 'dev'
+      - 'main'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '6.x'
+      - name: Building with dotnet
+        working-directory: ./src
+        run: dotnet build --configuration Release
+      - name: Running tests
+        working-directory: ./src
+        run: dotnet test
