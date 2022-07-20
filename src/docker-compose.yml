@@ -1,0 +1,27 @@
+version: "3.9"
+services:
+  accounts-db:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "Password1"
+      MSSQL_PID: "Express"
+      MSSQL_TCP_PORT: "9823"
+    networks:
+      - vis
+
+  accounts:
+    build: AccountsService/
+    ports:
+      - "9999:9999"
+    environment:
+      ConnectionStrings__DatabaseConnection: "Server=accounts-db,9823;Database=AccountsDb;User Id=sa;Password=Password1"
+      ASPNETCORE_URLS: http://0.0.0.0:9999/
+    networks:
+      - vis
+    depends_on:
+      - accounts-db
+
+networks:
+  vis:
+    driver: bridge
