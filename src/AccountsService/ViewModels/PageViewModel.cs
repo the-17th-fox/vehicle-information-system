@@ -1,30 +1,11 @@
 ﻿namespace AccountsService.ViewModels
 {
-    public class PageViewModel
+    public class PageViewModel<T>
     {
-        public int PageNumber { get; private set; }
-        public int TotalPages { get; private set; }
-
-        public PageViewModel(int count, int pageNumber, int pageSize)
-        {
-            PageNumber = pageNumber;
-            TotalPages = (int)Math.Ceiling(count / (double)pageSize);
-        }
-
-        public bool HasPreviousPage
-        {
-            get
-            {
-                return (PageNumber > 1);
-            }
-        }
-
-        public bool HasNextPage
-        {
-            get
-            {
-                return (PageNumber < TotalPages);
-            }
-        }
+        public List<T> Items { get; set; }
+        public int CurrentPage { get; set; }
+        public int TotalPages { get; set; }
+        public bool HasNextPage { get; set; }
+        public bool HasPreviousPage { get; set; }
     }
 }

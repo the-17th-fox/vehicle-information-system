@@ -2,6 +2,7 @@
 using AccountsService.Constants.Logger;
 using AccountsService.Services;
 using AccountsService.ViewModels;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,10 +15,12 @@ namespace AccountsService.Controllers
     {
         private readonly ILogger<AdminAccountsController> _logger;
         private readonly IAccountsSvc _accountsSvc;
-        public AdminAccountsController(IAccountsSvc accountsSvc, ILogger<AdminAccountsController> logger)
+        private readonly IMapper _mapper;
+        public AdminAccountsController(IAccountsSvc accountsSvc, ILogger<AdminAccountsController> logger, IMapper mapper)
         {
             _accountsSvc = accountsSvc;
             _logger = logger;
+            _mapper = mapper;
         }
 
         [HttpDelete("[action]")]
@@ -33,18 +36,12 @@ namespace AccountsService.Controllers
         }
 
         [HttpGet("[action]")]
-        public async Task<IActionResult> GetAllUsersAsync(int pageNumber = 1, int pageSize = 20)
+        public async Task<IActionResult> GetAllUsersAsync([FromQuery] PageParametersViewModel pageParams)
         {
             _logger.LogInformation(LoggingForms.TryingToGetUsers);
 
-            var users = await _accountsSvc.GetUsersAsync();
-            var page = new PageViewModel(users.Count, pageNumber, pageSize);
-            users = users.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
-            var accountsVM = new AccountsViewModel()
-            {
-                PageViewModel = page,
-                Users = users
-            };
+            var accounts = await _accountsSvc.GetAllAsync(pageParams);
+            var accountsVM = _mapper.Map<PageViewModel<UserViewModel>>(accounts);
 
             _logger.LogInformation(LoggingForms.GotUsers);
 

@@ -2,7 +2,9 @@
 using AccountsService.Constants.Logger;
 using AccountsService.Exceptions.CustomExceptions;
 using AccountsService.Models;
+using AccountsService.Services.Pagination;
 using AccountsService.Utilities;
+using AccountsService.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -109,16 +111,16 @@ namespace AccountsService.Services
             }
         }
 
-        public async Task<List<User>> GetUsersAsync()
+        public async Task<PagedList<User>> GetAllAsync(PageParametersViewModel pageParams)
         {
-            var users = await _userManager.Users.ToListAsync();
-            if(users is null)
+            var users = _userManager.Users.AsNoTracking();
+            if(!users.Any())
             {
                 _logger.LogInformation(LoggingForms.NoUsersFound);
-                throw new NotFoundException("There was no users found");
+                throw new NotFoundException("No users were found");
             }
 
-            return users;
+            return await PagedList<User>.ToPagedListAsync(users, pageParams.PageNumber, pageParams.PageSize);
         }
     }
 }

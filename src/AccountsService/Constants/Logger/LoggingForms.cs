@@ -21,7 +21,7 @@
 
         public const string TryingToGetUsers = "Trying to get users";
         public const string GotUsers = "Got a list of users";
-        public const string NoUsersFound = "There was no users found";
+        public const string NoUsersFound = "No users were found";
 
         public const string ExceptionForm = "[{exception}] has occured with status code [{statusCode}]: [{message}]";
     }
