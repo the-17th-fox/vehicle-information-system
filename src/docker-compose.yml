@@ -1,5 +1,20 @@
 version: "3.9"
 services:
+  logs:
+    image: mongo
+    networks:
+      - vis
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://logs:27017/
+    networks:
+      - vis
+
   accounts-db:
     image: mcr.microsoft.com/mssql/server:2019-latest
     environment:
@@ -17,10 +32,14 @@ services:
     environment:
       ConnectionStrings__DatabaseConnection: "Server=accounts-db,9823;Database=AccountsDb;User Id=sa;Password=Password1"
       ASPNETCORE_URLS: http://0.0.0.0:9999/
+      Serilog__WriteTo__1__Name: "MongoDB"
+      Serilog__WriteTo__1__Args__databaseUrl: "mongodb://logs:27017/logs"
+      Serilog__WriteTo__1__Args__collectionName: "logs"
     networks:
       - vis
     depends_on:
       - accounts-db
+      - logs
 
 networks:
   vis:

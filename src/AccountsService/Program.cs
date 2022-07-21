@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -98,6 +99,11 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Host.UseSerilog((context, config) =>
+{
+    config.ReadFrom.Configuration(context.Configuration);
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -112,5 +118,7 @@ app.UseAuthorization();
 app.UseMiddleware<GlobalExceptionsHandler>();
 
 app.MapControllers();
+
+Log.Information("App successfully started");
 
 app.Run();
