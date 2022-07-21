@@ -19,6 +19,10 @@
         public const string UserNotFound = "The user [{email}] was not found";  
         public const string InvalidCredentials = "The user [{email}] has failed authentication";
 
+        public const string TryingToGetUsers = "Trying to get users";
+        public const string GotUsers = "Got a list of users";
+        public const string NoUsersFound = "No users were found";
+
         public const string ExceptionForm = "[{exception}] has occured with status code [{statusCode}]: [{message}]";
     }
 }

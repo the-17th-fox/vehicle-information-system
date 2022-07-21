@@ -1,4 +1,5 @@
 ﻿using AccountsService.Models;
+using AccountsService.Services.Pagination;
 using AccountsService.Utilities;
 using AccountsService.ViewModels;
 using Microsoft.Extensions.Options;
@@ -11,6 +12,7 @@ namespace AccountsService.Services
     {
         public Task RegisterAsync(User user, string password);
         public Task DeleteAsync(Guid id);
+        public Task<PagedList<User>> GetAllAsync(PageParametersViewModel pageParams);
         public Task<string> LoginAsync(string email, string password, IOptions<JwtConfigugartionModel> securityConfig);
     }
 }
