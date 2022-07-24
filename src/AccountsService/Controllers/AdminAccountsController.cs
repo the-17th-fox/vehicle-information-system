@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AccountsService.Controllers
 {
-    [Authorize(Policy = AccountsPolicies.ElevatedRights, AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(Policy = AccountsPolicies.ElevatedRights, AuthenticationSchemes = "Identity.Application,Bearer")]
     [Route("api/users")]
     [ApiController]
     public class AdminAccountsController : ControllerBase

@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
@@ -30,6 +31,7 @@ namespace AccountsService.Controllers
         private readonly IMapper _mapper;
         private readonly ILogger<DefaultAccountsController> _logger;
         private readonly IOptions<JwtConfigurationModel> _jwtConfig;
+        private readonly SignInManager<User> _signInManager;
         private string _userId => User.FindFirstValue(ClaimTypes.NameIdentifier);
         private string _userEmail => User.FindFirstValue(ClaimTypes.Email);
 
@@ -37,12 +39,14 @@ namespace AccountsService.Controllers
             IAccountsSvc accountsSvc, 
             IMapper mapper, 
             ILogger<DefaultAccountsController> logger,
-            IOptions<JwtConfigurationModel> jwtConfig)
+            IOptions<JwtConfigurationModel> jwtConfig,
+            SignInManager<User> signInManager)
         {
             _accountsSvc = accountsSvc;
             _mapper = mapper;
             _logger = logger;
             _jwtConfig = jwtConfig;
+            _signInManager = signInManager;
         }
 
         [AllowAnonymous]
@@ -59,6 +63,13 @@ namespace AccountsService.Controllers
             return Ok();
         }
 
+        [Authorize(AuthenticationSchemes = "Identity.Application")]
+        [HttpGet]
+        public IActionResult Get()
+        {
+            return Ok(_userId + " " + _userEmail);
+        }
+
         [AllowAnonymous]
         [HttpPost("[action]")]
         public async Task<IActionResult> LoginAsync([FromBody] LoginViewModel viewModel)
@@ -72,13 +83,17 @@ namespace AccountsService.Controllers
             return Ok(token);
         }
 
-        [Authorize(Policy = AccountsPolicies.DefaultRights, AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [Authorize(Policy = AccountsPolicies.DefaultRights, AuthenticationSchemes = "Identity.Application,Bearer")]
         [HttpDelete("[action]")]
         public async Task<IActionResult> DeleteAsync()
         {
             _logger.LogInformation(LoggingForms.DeletionAttempt, _userId);
 
-            await _accountsSvc.DeleteAsync(Guid.Parse(_userId));
+            bool isExternalUser = User?.Identity?.AuthenticationType != "Bearer";
+            if (isExternalUser)
+                await LogoutGoogleAsync();
+
+            await _accountsSvc.DeleteAsync(Guid.Parse(_userId), isExternalUser);
 
             _logger.LogInformation(LoggingForms.UserDeleted, _userId);
 
@@ -89,22 +104,19 @@ namespace AccountsService.Controllers
         [HttpGet("[action]")]
         public async Task LoginGoogleAsync()
         {
-            var properties = new AuthenticationProperties
-            {
-                RedirectUri = Url.Action(nameof(GoogleResponse))
-            };
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(GoogleDefaults.AuthenticationScheme, Url.Action(nameof(GoogleResponse)));
 
             await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, properties);
         }
 
-        [Authorize(AuthenticationSchemes = GoogleDefaults.AuthenticationScheme)]
+        [Authorize(AuthenticationSchemes = "Identity.Application")]
         [HttpGet("[action]")]
         public async Task<IActionResult> LogoutGoogleAsync()
         {
-            await HttpContext.SignOutAsync("Identity.External");
-            await HttpContext.SignOutAsync("Identity.Application");
+            await _signInManager.SignOutAsync();
 
-            _logger.LogInformation(LoggingForms.GoogleLogout, _userId, _userEmail);
+            _logger.LogInformation(LoggingForms.GoogleLogout, _userId, _userEmail);            
+
             return Ok();
         }
 
@@ -112,22 +124,25 @@ namespace AccountsService.Controllers
         [HttpGet("[action]")]
         public async Task<IActionResult> GoogleResponse()
         {
-            AuthenticateResult authResult = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
-            if (!authResult.Succeeded)
+            var loginInfo = await _signInManager.GetExternalLoginInfoAsync();
+
+            var googleId = loginInfo.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            var email = loginInfo.Principal.FindFirstValue(ClaimTypes.Email);
+
+            _logger.LogInformation(LoggingForms.GoogleAuthPassed, googleId, email);
+
+            var signInResult = await _signInManager.ExternalLoginSignInAsync(loginInfo.LoginProvider, loginInfo.ProviderKey, isPersistent: false);
+
+            // If the user has never been logged in -> create a record in the users table
+            
+            if(!signInResult.Succeeded)
             {
-                throw new UnauthorizedException(authResult.Failure!.Message);
+                var user = await _accountsSvc.SaveExternalUserAsync(loginInfo);
+
+                await _signInManager.SignInAsync(user, isPersistent: false);
             }
-            var claimsPrincipal = authResult.Principal;
-            var id = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
-            var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
-
-            _logger.LogInformation(LoggingForms.GoogleAuthPassed, id, email);
-
-            var claimsIdentity = new ClaimsIdentity(GoogleDefaults.AuthenticationScheme);
-            claimsIdentity = _accountsSvc.GetGoogleUserClaims(claimsPrincipal, claimsIdentity);
-
-            await HttpContext.SignInAsync("Identity.Application", new ClaimsPrincipal(claimsIdentity));
-            _logger.LogInformation(LoggingForms.GoogleLoggedIn, id, email);
+            
+            _logger.LogInformation(LoggingForms.GoogleLoggedIn, _userId, email);
 
             return Ok();
         }
