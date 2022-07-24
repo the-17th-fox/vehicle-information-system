@@ -3,12 +3,13 @@ using AccountsService.Constants.Logger;
 using AccountsService.Services;
 using AccountsService.ViewModels;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AccountsService.Controllers
 {
-    [Authorize(Policy = AccountsPolicies.ElevatedRights)]
+    [Authorize(Policy = AccountsPolicies.ElevatedRights, AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/users")]
     [ApiController]
     public class AdminAccountsController : ControllerBase

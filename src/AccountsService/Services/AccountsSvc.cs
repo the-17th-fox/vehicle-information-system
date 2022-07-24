@@ -40,10 +40,9 @@ namespace AccountsService.Services
             return claims;
         }
 
-        private JwtSecurityToken CreateSecurityToken(IOptions<JwtConfigugartionModel> securityConfig, List<Claim> claims)
+        private JwtSecurityToken CreateSecurityToken(IOptions<JwtConfigurationModel> securityConfig, List<Claim> claims)
         {
             var symSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityConfig.Value.Key));
-
             return new(
                 issuer: securityConfig.Value.Issuer,
                 audience: securityConfig.Value.Audience,
@@ -53,7 +52,7 @@ namespace AccountsService.Services
                 signingCredentials: new SigningCredentials(symSecurityKey, SecurityAlgorithms.HmacSha256));
         }
 
-        public async Task<string> LoginAsync(string email, string password, IOptions<JwtConfigugartionModel> securityConfig)
+        public async Task<string> LoginAsync(string email, string password, IOptions<JwtConfigurationModel> securityConfig)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null || user.IsDeleted)
@@ -96,7 +95,7 @@ namespace AccountsService.Services
             var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
             if (user is null)
             {
-                _logger.LogInformation(LoggingForms.UserNotFound, user.Email);
+                _logger.LogInformation(LoggingForms.UserNotFound, id.ToString());
                 throw new NotFoundException($"User with provided id [{id}] was not found");
             }
 
@@ -126,6 +125,28 @@ namespace AccountsService.Services
             }
 
             return await PagedList<User>.ToPagedListAsync(users, pageParams.PageNumber, pageParams.PageSize);
+        }
+
+        public ClaimsIdentity GetGoogleUserClaims(ClaimsPrincipal? claimsPrincipal, ClaimsIdentity? claimsIdentity)
+        {
+            if(claimsPrincipal is null)
+                throw new ArgumentNullException(nameof(claimsPrincipal));
+            if (claimsIdentity is null)
+                throw new ArgumentNullException(nameof(claimsIdentity));
+
+            List<Claim> claims = new()
+            {
+                claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)
+                    ?? throw new ArgumentNullException(nameof(claims)),
+
+                claimsPrincipal.FindFirst(ClaimTypes.Email) 
+                    ?? throw new ArgumentNullException(nameof(claims)),
+
+                new Claim(ClaimTypes.Role, AccountsRoles.DefaultUser)
+            };
+            claimsIdentity.AddClaims(claims);
+
+            return claimsIdentity;
         }
     }
 }

@@ -1,10 +1,14 @@
 ﻿using AccountsService.Constants.Auth;
 using AccountsService.Constants.Logger;
+using AccountsService.Exceptions.CustomExceptions;
 using AccountsService.Models;
 using AccountsService.Services;
 using AccountsService.Utilities;
 using AccountsService.ViewModels;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -25,13 +29,15 @@ namespace AccountsService.Controllers
         private readonly IAccountsSvc _accountsSvc;
         private readonly IMapper _mapper;
         private readonly ILogger<DefaultAccountsController> _logger;
-        private readonly IOptions<JwtConfigugartionModel> _jwtConfig;
-        private Guid _userId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        private readonly IOptions<JwtConfigurationModel> _jwtConfig;
+        private string _userId => User.FindFirstValue(ClaimTypes.NameIdentifier);
+        private string _userEmail => User.FindFirstValue(ClaimTypes.Email);
+
         public DefaultAccountsController(
             IAccountsSvc accountsSvc, 
             IMapper mapper, 
             ILogger<DefaultAccountsController> logger,
-            IOptions<JwtConfigugartionModel> jwtConfig)
+            IOptions<JwtConfigurationModel> jwtConfig)
         {
             _accountsSvc = accountsSvc;
             _mapper = mapper;
@@ -66,15 +72,61 @@ namespace AccountsService.Controllers
             return Ok(token);
         }
 
-        [Authorize(Policy = AccountsPolicies.DefaultRights)]
+        [Authorize(Policy = AccountsPolicies.DefaultRights, AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpDelete("[action]")]
         public async Task<IActionResult> DeleteAsync()
         {
             _logger.LogInformation(LoggingForms.DeletionAttempt, _userId);
 
-            await _accountsSvc.DeleteAsync(_userId);
+            await _accountsSvc.DeleteAsync(Guid.Parse(_userId));
 
             _logger.LogInformation(LoggingForms.UserDeleted, _userId);
+
+            return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpGet("[action]")]
+        public async Task LoginGoogleAsync()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action(nameof(GoogleResponse))
+            };
+
+            await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, properties);
+        }
+
+        [Authorize(AuthenticationSchemes = GoogleDefaults.AuthenticationScheme)]
+        [HttpGet("[action]")]
+        public async Task<IActionResult> LogoutGoogleAsync()
+        {
+            await HttpContext.SignOutAsync("Identity.External");
+
+            _logger.LogInformation(LoggingForms.GoogleLogout, _userId, _userEmail);
+            return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            AuthenticateResult authResult = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+            if (!authResult.Succeeded)
+            {
+                throw new UnauthorizedException(authResult.Failure!.Message);
+            }
+            var claimsPrincipal = authResult.Principal;
+            var id = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
+            var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
+
+            _logger.LogInformation(LoggingForms.GoogleAuthPassed, id, email);
+
+            var claimsIdentity = new ClaimsIdentity(GoogleDefaults.AuthenticationScheme);
+            claimsIdentity = _accountsSvc.GetGoogleUserClaims(claimsPrincipal, claimsIdentity);
+
+            await HttpContext.SignInAsync("Identity.Application", new ClaimsPrincipal(claimsIdentity));
+            _logger.LogInformation(LoggingForms.GoogleLoggedIn, id, email);
 
             return Ok();
         }
