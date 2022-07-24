@@ -102,6 +102,7 @@ namespace AccountsService.Controllers
         public async Task<IActionResult> LogoutGoogleAsync()
         {
             await HttpContext.SignOutAsync("Identity.External");
+            await HttpContext.SignOutAsync("Identity.Application");
 
             _logger.LogInformation(LoggingForms.GoogleLogout, _userId, _userEmail);
             return Ok();
