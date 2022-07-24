@@ -16,7 +16,7 @@
         public const string FailedToDelete = "The error occured during user [{id}] deletion: [{error}]";
         public const string AlreadyDeleted = "The user [{id}] is already deleted";
 
-        public const string UserNotFound = "The user [{email}] was not found";  
+        public const string UserNotFound = "The user [{identifier}] was not found";  
         public const string InvalidCredentials = "The user [{email}] has failed authentication";
 
         public const string TryingToGetUsers = "Trying to get users";
@@ -24,5 +24,9 @@
         public const string NoUsersFound = "No users were found";
 
         public const string ExceptionForm = "[{exception}] has occured with status code [{statusCode}]: [{message}]";
+
+        public const string GoogleAuthPassed = "The user [{id}]:[{email}] has successfully passed the Google external authentication";
+        public const string GoogleLoggedIn = "The user [{id}]:[{email}] was successfully logged in through the Google";
+        public const string GoogleLogout = "The user (google) [{id}]:[{email}] has successfully logged out";
     }
 }
