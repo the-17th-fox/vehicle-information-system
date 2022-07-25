@@ -89,11 +89,10 @@ namespace AccountsService.Controllers
         {
             _logger.LogInformation(LoggingForms.DeletionAttempt, _userId);
 
-            bool isExternalUser = User?.Identity?.AuthenticationType != "Bearer";
-            if (isExternalUser)
-                await LogoutGoogleAsync();
+            await _accountsSvc.DeleteAsync(Guid.Parse(_userId));
 
-            await _accountsSvc.DeleteAsync(Guid.Parse(_userId), isExternalUser);
+            if (User?.Identity?.AuthenticationType != "Bearer")
+                await LogoutGoogleAsync();
 
             _logger.LogInformation(LoggingForms.UserDeleted, _userId);
 
@@ -146,5 +145,6 @@ namespace AccountsService.Controllers
 
             return Ok();
         }
+
     }
 }
