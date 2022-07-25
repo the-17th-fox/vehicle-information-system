@@ -11,7 +11,7 @@ namespace AccountsService.Services
 {
     public interface IAccountsSvc
     {
-        public Task RegisterAsync(User user, string password);
+        public Task RegisterAsync(User user, string password, bool requirePassword = true);
         public Task<User> RestoreAsync(User newUser, User oldUser, string password);
         public Task DeleteAsync(Guid id);
         public Task<PagedList<User>> GetAllAsync(PageParametersViewModel pageParams);

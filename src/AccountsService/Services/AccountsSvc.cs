@@ -77,7 +77,7 @@ namespace AccountsService.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task RegisterAsync(User user, string password)
+        public async Task RegisterAsync(User user, string password, bool requirePassword = true)
         {
             var existingUser = await _userManager.FindByEmailAsync(user.Email);
             if (existingUser is not null && !existingUser.IsDeleted)
@@ -93,8 +93,11 @@ namespace AccountsService.Services
                 return;
             }
 
-            var result = await _userManager.CreateAsync(user, password);
-            if(!result.Succeeded)
+            var result = requirePassword 
+                ? await _userManager.CreateAsync(user, password) 
+                : await _userManager.CreateAsync(user);
+
+            if (!result.Succeeded)
             {
                 _logger.LogInformation(LoggingForms.FailedToRegister, user.UserName, user.Email, result.Errors.First<IdentityError>().Description);
                 throw new InvalidParamsException(result.Errors.First<IdentityError>().Description);
@@ -199,7 +202,7 @@ namespace AccountsService.Services
             };
 
             if(existingUser is null)
-                await RegisterAsync(user, null!);
+                await RegisterAsync(user, null!, requirePassword: false);
 
             if (existingUser is not null && existingUser.IsDeleted)
                 user = await RestoreAsync(user, existingUser, null!);
