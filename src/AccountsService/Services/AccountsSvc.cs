@@ -1,6 +1,7 @@
 ﻿using AccountsService.Constants.Auth;
 using AccountsService.Constants.Logger;
 using AccountsService.Exceptions.CustomExceptions;
+using AccountsService.Infrastructure.Context;
 using AccountsService.Models;
 using AccountsService.Services.Pagination;
 using AccountsService.Utilities;
@@ -19,10 +20,12 @@ namespace AccountsService.Services
     {
         private readonly UserManager<User> _userManager;
         private readonly ILogger<AccountsSvc> _logger;
-        public AccountsSvc(UserManager<User> userManager, ILogger<AccountsSvc> logger)
+        private readonly AccountsServiceContext _context;
+        public AccountsSvc(UserManager<User> userManager, ILogger<AccountsSvc> logger, AccountsServiceContext context)
         {
             _userManager = userManager;
             _logger = logger;
+            _context = context;
         }
 
         private List<Claim> GetClaims(User user, IList<string> userRoles)
@@ -40,10 +43,9 @@ namespace AccountsService.Services
             return claims;
         }
 
-        private JwtSecurityToken CreateSecurityToken(IOptions<JwtConfigugartionModel> securityConfig, List<Claim> claims)
+        private JwtSecurityToken CreateSecurityToken(IOptions<JwtConfigurationModel> securityConfig, List<Claim> claims)
         {
             var symSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityConfig.Value.Key));
-
             return new(
                 issuer: securityConfig.Value.Issuer,
                 audience: securityConfig.Value.Audience,
@@ -53,7 +55,7 @@ namespace AccountsService.Services
                 signingCredentials: new SigningCredentials(symSecurityKey, SecurityAlgorithms.HmacSha256));
         }
 
-        public async Task<string> LoginAsync(string email, string password, IOptions<JwtConfigugartionModel> securityConfig)
+        public async Task<string> LoginAsync(string email, string password, IOptions<JwtConfigurationModel> securityConfig)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null || user.IsDeleted)
@@ -75,10 +77,27 @@ namespace AccountsService.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public async Task RegisterAsync(User user, string password)
+        public async Task RegisterAsync(User user, string password, bool requirePassword = true)
         {
-            var result = await _userManager.CreateAsync(user, password);
-            if(!result.Succeeded)
+            var existingUser = await _userManager.FindByEmailAsync(user.Email);
+            if (existingUser is not null && !existingUser.IsDeleted)
+            {
+                _logger.LogInformation(LoggingForms.FailedToRegister, user.UserName, user.Email, (LoggingForms.UserAlreadyExists, user.Email));
+                throw new InvalidParamsException("There is already a user with this email");
+            }
+
+            // For new external users and users who restore their accounts
+            if(existingUser is not null && existingUser.IsDeleted)
+            {
+                await RestoreAsync(user, existingUser, password);
+                return;
+            }
+
+            var result = requirePassword 
+                ? await _userManager.CreateAsync(user, password) 
+                : await _userManager.CreateAsync(user);
+
+            if (!result.Succeeded)
             {
                 _logger.LogInformation(LoggingForms.FailedToRegister, user.UserName, user.Email, result.Errors.First<IdentityError>().Description);
                 throw new InvalidParamsException(result.Errors.First<IdentityError>().Description);
@@ -91,12 +110,42 @@ namespace AccountsService.Services
             }
         }
 
+        public async Task<User> RestoreAsync(User newUser, User oldUser, string password)
+        {
+            using(var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    oldUser.IsDeleted = false;
+                    oldUser.UserName = newUser.UserName;
+                    await _userManager.UpdateSecurityStampAsync(oldUser);
+                    await _userManager.RemovePasswordAsync(oldUser);
+
+                    // If the user came from default registration form he's unable to miss the password field
+                    // otherwise, if the user came from external login (registration) he doesn't need any pass
+                    if (password is not null)
+                        await _userManager.AddPasswordAsync(oldUser, password);
+
+                    await _userManager.UpdateAsync(oldUser);
+                    await transaction.CommitAsync();
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                }
+            }
+
+            _logger.LogInformation(LoggingForms.Restored, oldUser.Email);
+            
+            return oldUser;
+        }
+
         public async Task DeleteAsync(Guid id)
         {
             var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
             if (user is null)
             {
-                _logger.LogInformation(LoggingForms.UserNotFound, user.Email);
+                _logger.LogInformation(LoggingForms.UserNotFound, id.ToString());
                 throw new NotFoundException($"User with provided id [{id}] was not found");
             }
 
@@ -104,6 +153,13 @@ namespace AccountsService.Services
             {
                 _logger.LogInformation(LoggingForms.AlreadyDeleted, id);
                 throw new Exception($"User with provided id [{id}] is already deleted");
+            }
+
+            IList<UserLoginInfo> loginInfos;
+            if ((loginInfos = await _userManager.GetLoginsAsync(user)).Any())
+            {
+                foreach (var item in loginInfos)
+                    await _userManager.RemoveLoginAsync(user, item.LoginProvider, item.ProviderKey);
             }
 
             user.IsDeleted = true;
@@ -126,6 +182,34 @@ namespace AccountsService.Services
             }
 
             return await PagedList<User>.ToPagedListAsync(users, pageParams.PageNumber, pageParams.PageSize);
+        }
+
+        public async Task<User> SaveExternalUserAsync(ExternalLoginInfo loginInfo)
+        {
+            var email = loginInfo.Principal.FindFirstValue(ClaimTypes.Email);
+
+            var existingUser = await _userManager.FindByEmailAsync(email);
+            if(existingUser is not null && !existingUser.IsDeleted)
+            {
+                _logger.LogInformation(LoggingForms.UserAlreadyExists, email);
+                throw new InvalidParamsException("There is already a user with this email");
+            }
+
+            var user = new User
+            {
+                UserName = email,
+                Email = email
+            };
+
+            if(existingUser is null)
+                await RegisterAsync(user, null!, requirePassword: false);
+
+            if (existingUser is not null && existingUser.IsDeleted)
+                user = await RestoreAsync(user, existingUser, null!);
+
+            await _userManager.AddLoginAsync(user, loginInfo);
+
+            return user;
         }
     }
 }

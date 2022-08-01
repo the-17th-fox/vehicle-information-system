@@ -11,6 +11,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using Serilog;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +26,7 @@ builder.Services.AddAutoMapper(typeof(MapperProfile));
 builder.Services.AddScoped<IAccountsSvc, AccountsSvc>();
 
 //Auth section
-builder.Services.Configure<JwtConfigugartionModel>(builder.Configuration.GetSection("Jwt"));
+builder.Services.Configure<JwtConfigurationModel>(builder.Configuration.GetSection("Authentication").GetSection("Jwt"));
 
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
 {
@@ -36,7 +39,7 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
 }).AddEntityFrameworkStores<AccountsServiceContext>();
 
 
-builder.Services.AddAuthentication(options => 
+builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -51,10 +54,16 @@ builder.Services.AddAuthentication(options =>
             ValidateIssuer = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            ValidIssuer = builder.Configuration["Authentication:Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Authentication:Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Authentication:Jwt:Key"]))
         };
+    })
+    .AddGoogle(GoogleDefaults.AuthenticationScheme, opt =>
+    {
+        opt.ClientId = builder.Configuration["Authentication:GoogleAuth:ClientId"];
+        opt.ClientSecret = builder.Configuration["Authentication:GoogleAuth:ClientSecret"];
+        opt.SaveTokens = true;
     });
 
 builder.Services.AddAuthorization(options =>
@@ -110,7 +119,10 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
+
+app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
