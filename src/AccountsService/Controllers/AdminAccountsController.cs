@@ -3,12 +3,13 @@ using AccountsService.Constants.Logger;
 using AccountsService.Services;
 using AccountsService.ViewModels;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AccountsService.Controllers
 {
-    [Authorize(Policy = AccountsPolicies.ElevatedRights)]
+    [Authorize(Policy = AccountsPolicies.ElevatedRights, AuthenticationSchemes = "Identity.Application,Bearer")]
     [Route("api/users")]
     [ApiController]
     public class AdminAccountsController : ControllerBase
@@ -46,6 +47,16 @@ namespace AccountsService.Controllers
             _logger.LogInformation(LoggingForms.GotUsers);
 
             return Ok(accountsVM);
+        }
+
+        [HttpPatch("[action]")]
+        public async Task<IActionResult> ChangeRoleAsync(Guid userId, string role)
+        {
+            await _accountsSvc.ChangeRoleAsync(userId, role);
+
+            _logger.LogInformation(LoggingForms.AddedToRole, userId, role);
+
+            return Ok();
         }
     }
 }

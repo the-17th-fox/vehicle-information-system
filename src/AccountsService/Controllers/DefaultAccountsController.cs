@@ -1,12 +1,17 @@
 ﻿using AccountsService.Constants.Auth;
 using AccountsService.Constants.Logger;
+using AccountsService.Exceptions.CustomExceptions;
 using AccountsService.Models;
 using AccountsService.Services;
 using AccountsService.Utilities;
 using AccountsService.ViewModels;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
@@ -25,18 +30,23 @@ namespace AccountsService.Controllers
         private readonly IAccountsSvc _accountsSvc;
         private readonly IMapper _mapper;
         private readonly ILogger<DefaultAccountsController> _logger;
-        private readonly IOptions<JwtConfigugartionModel> _jwtConfig;
-        private Guid _userId => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+        private readonly IOptions<JwtConfigurationModel> _jwtConfig;
+        private readonly SignInManager<User> _signInManager;
+        private string _userId => User.FindFirstValue(ClaimTypes.NameIdentifier);
+        private string _userEmail => User.FindFirstValue(ClaimTypes.Email);
+
         public DefaultAccountsController(
             IAccountsSvc accountsSvc, 
             IMapper mapper, 
             ILogger<DefaultAccountsController> logger,
-            IOptions<JwtConfigugartionModel> jwtConfig)
+            IOptions<JwtConfigurationModel> jwtConfig,
+            SignInManager<User> signInManager)
         {
             _accountsSvc = accountsSvc;
             _mapper = mapper;
             _logger = logger;
             _jwtConfig = jwtConfig;
+            _signInManager = signInManager;
         }
 
         [AllowAnonymous]
@@ -53,6 +63,13 @@ namespace AccountsService.Controllers
             return Ok();
         }
 
+        [Authorize(AuthenticationSchemes = "Identity.Application")]
+        [HttpGet]
+        public IActionResult Get()
+        {
+            return Ok(_userId + " " + _userEmail);
+        }
+
         [AllowAnonymous]
         [HttpPost("[action]")]
         public async Task<IActionResult> LoginAsync([FromBody] LoginViewModel viewModel)
@@ -66,17 +83,68 @@ namespace AccountsService.Controllers
             return Ok(token);
         }
 
-        [Authorize(Policy = AccountsPolicies.DefaultRights)]
+        [Authorize(Policy = AccountsPolicies.DefaultRights, AuthenticationSchemes = "Identity.Application,Bearer")]
         [HttpDelete("[action]")]
         public async Task<IActionResult> DeleteAsync()
         {
             _logger.LogInformation(LoggingForms.DeletionAttempt, _userId);
 
-            await _accountsSvc.DeleteAsync(_userId);
+            await _accountsSvc.DeleteAsync(Guid.Parse(_userId));
+
+            if (User?.Identity?.AuthenticationType != "Bearer")
+                await LogoutGoogleAsync();
 
             _logger.LogInformation(LoggingForms.UserDeleted, _userId);
 
             return Ok();
         }
+
+        [AllowAnonymous]
+        [HttpGet("[action]")]
+        public async Task LoginGoogleAsync()
+        {
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(GoogleDefaults.AuthenticationScheme, Url.Action(nameof(GoogleResponse)));
+
+            await HttpContext.ChallengeAsync(GoogleDefaults.AuthenticationScheme, properties);
+        }
+
+        [Authorize(AuthenticationSchemes = "Identity.Application")]
+        [HttpGet("[action]")]
+        public async Task<IActionResult> LogoutGoogleAsync()
+        {
+            await _signInManager.SignOutAsync();
+
+            _logger.LogInformation(LoggingForms.GoogleLogout, _userId, _userEmail);            
+
+            return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            var loginInfo = await _signInManager.GetExternalLoginInfoAsync();
+
+            var googleId = loginInfo.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            var email = loginInfo.Principal.FindFirstValue(ClaimTypes.Email);
+
+            _logger.LogInformation(LoggingForms.GoogleAuthPassed, googleId, email);
+
+            var signInResult = await _signInManager.ExternalLoginSignInAsync(loginInfo.LoginProvider, loginInfo.ProviderKey, isPersistent: false);
+
+            // If the user has never been logged in -> create a record in the users table
+            
+            if(!signInResult.Succeeded)
+            {
+                var user = await _accountsSvc.SaveExternalUserAsync(loginInfo);
+
+                await _signInManager.SignInAsync(user, isPersistent: false);
+            }
+            
+            _logger.LogInformation(LoggingForms.GoogleLoggedIn, _userId, email);
+
+            return Ok();
+        }
+
     }
 }

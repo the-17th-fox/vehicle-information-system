@@ -1,6 +1,6 @@
 ﻿namespace AccountsService.Utilities
 {
-    public class JwtConfigugartionModel
+    public class JwtConfigurationModel
     {
         public string Issuer { get; set; } = string.Empty;
         public string Audience { get; set; } = string.Empty;
