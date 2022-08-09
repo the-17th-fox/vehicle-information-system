@@ -18,11 +18,13 @@ namespace AccountsService.Services
     public class AccountsSvc : IAccountsSvc
     {
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly ILogger<AccountsSvc> _logger;
-        public AccountsSvc(UserManager<User> userManager, ILogger<AccountsSvc> logger)
+        public AccountsSvc(UserManager<User> userManager, ILogger<AccountsSvc> logger, RoleManager<IdentityRole<Guid>> roleManager)
         {
             _userManager = userManager;
             _logger = logger;
+            _roleManager = roleManager;
         }
 
         private List<Claim> GetClaims(User user, IList<string> userRoles)
@@ -126,6 +128,40 @@ namespace AccountsService.Services
             }
 
             return await PagedList<User>.ToPagedListAsync(users, pageParams.PageNumber, pageParams.PageSize);
+        }
+
+        public async Task ChangeRoleAsync(Guid userId, string role)
+        {
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user is null)
+            {
+                _logger.LogInformation(LoggingForms.UserNotFound, userId);
+                throw new NotFoundException($"User with provided id [{userId}] was not found");
+            }
+
+            var findRole = await _roleManager.FindByNameAsync(role);   
+            if(findRole is null)
+            {
+                _logger.LogInformation(LoggingForms.RoleNotFound, role);
+                throw new NotFoundException($"Role {role} not found");
+            }
+
+            var inRole = await _userManager.IsInRoleAsync(user, findRole.Name);
+            if(inRole)
+            {
+                _logger.LogInformation(LoggingForms.UserAlredyInRole, userId, findRole.Name);
+                throw new Exception($"This user [{userId}] already in role {role}");
+            }
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var removeRoles = await _userManager.RemoveFromRolesAsync(user, userRoles);
+            var result = await _userManager.AddToRoleAsync(user, findRole.Name);
+            if (!result.Succeeded)
+            {
+                var error = result.Errors.First<IdentityError>().Description;
+                _logger.LogInformation(LoggingForms.FailedToAddToRole, userId, role, error);
+                throw new Exception(error);
+            }
         }
     }
 }

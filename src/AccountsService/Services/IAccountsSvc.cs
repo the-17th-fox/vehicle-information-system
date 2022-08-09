@@ -12,6 +12,7 @@ namespace AccountsService.Services
     {
         public Task RegisterAsync(User user, string password);
         public Task DeleteAsync(Guid id);
+        public Task ChangeRoleAsync(Guid userId, string role);
         public Task<PagedList<User>> GetAllAsync(PageParametersViewModel pageParams);
         public Task<string> LoginAsync(string email, string password, IOptions<JwtConfigugartionModel> securityConfig);
     }
