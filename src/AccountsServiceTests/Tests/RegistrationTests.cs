@@ -2,6 +2,8 @@ using AccountsService.Exceptions.CustomExceptions;
 using AccountsService.Infrastructure.Context;
 using AccountsService.Models;
 using AccountsService.Services;
+using AccountsServiceTests.Mocks;
+using AccountsServiceTests.TestingData;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -10,25 +12,11 @@ using Moq;
 using System.Threading;
 using Xunit;
 
-namespace AccountsServiceTests
+namespace AccountsServiceTests.Tests
 {
-    public class AccountsSvcTests
+    public class RegistrationTests
     {
-        private static Mock<UserManager<User>> _userManagerMock = null!;
-        private static Mock<ILogger<AccountsSvc>> _loggerMock = null!;
-        private static AccountsServiceContext _context = null!;
-        public AccountsSvcTests()
-        {
-            _loggerMock = new();
-            _userManagerMock = new Mock<UserManager<User>>(Mock.Of<IUserStore<User>>(), null, null, null, null, null, null, null, null);
-
-            var options = new DbContextOptionsBuilder<AccountsServiceContext>()
-                .UseInMemoryDatabase(databaseName: "AccountsDb")
-                .ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-                .Options;
-
-            _context = new(options);
-        }
+        private readonly TestingMocks _mocks = new();
 
         [Fact]
         public async void Register_UserAlreadyExistsNotDeleted_InvalidParamsException()
@@ -36,16 +24,16 @@ namespace AccountsServiceTests
             // Arrange
             var user = SampleData.GetSampleUser(isDeleted: false);
 
-            _userManagerMock.Setup(x => x.FindByEmailAsync(It.IsAny<string>()))
+            _mocks.UserManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(user)
                 .Verifiable();
 
-            var service = new AccountsSvc(_userManagerMock.Object, _loggerMock.Object, _context);
+            var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidParamsException>(() => service.RegisterAsync(user, SampleData.SamplePassword))
                 .WaitAsync(CancellationToken.None);
-            _userManagerMock.VerifyAll();
+            _mocks.UserManager.VerifyAll();
         }
 
         [Fact]
@@ -54,17 +42,17 @@ namespace AccountsServiceTests
             // Arrange
             var user = SampleData.GetSampleUser(isDeleted: true);
 
-            _userManagerMock.Setup(x => x.FindByEmailAsync(It.IsAny<string>()))
+            _mocks.UserManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(user)
                 .Verifiable();
 
-            var service = new AccountsSvc(_userManagerMock.Object, _loggerMock.Object, _context);
+            var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
 
             // Act
             var result = service.RegisterAsync(user, SampleData.SamplePassword);
 
             // Assert
-            _userManagerMock.VerifyAll();
+            _mocks.UserManager.VerifyAll();
             Assert.True(result.IsCompletedSuccessfully);
             Assert.False(user.IsDeleted);
         }
@@ -76,26 +64,26 @@ namespace AccountsServiceTests
             var user = SampleData.GetSampleUser(isDeleted: false);
             User nullUser = null!;
 
-            _userManagerMock.Setup(x => x.FindByEmailAsync(It.IsAny<string>()))
+            _mocks.UserManager.Setup(x => x.FindByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(nullUser)
                 .Verifiable();
 
-            _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
+            _mocks.UserManager.Setup(x => x.CreateAsync(It.IsAny<User>(), It.IsAny<string>()))
                 .ReturnsAsync(IdentityResult.Success)
                 .Verifiable();
 
-            _userManagerMock.Setup(x => x.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
+            _mocks.UserManager.Setup(x => x.AddToRoleAsync(It.IsAny<User>(), It.IsAny<string>()))
                 .ReturnsAsync(IdentityResult.Success)
                 .Verifiable();
 
-            var service = new AccountsSvc(_userManagerMock.Object, _loggerMock.Object, _context);
+            var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
 
             // Act 
             var result = service.RegisterAsync(user, SampleData.SamplePassword)
                 .WaitAsync(CancellationToken.None);
 
             // Assert
-            _userManagerMock.VerifyAll();
+            _mocks.UserManager.VerifyAll();
             Assert.True(result.IsCompletedSuccessfully);
         }
     }
