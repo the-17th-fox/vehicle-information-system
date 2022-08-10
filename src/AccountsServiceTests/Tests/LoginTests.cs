@@ -71,7 +71,7 @@ namespace AccountsServiceTests.Tests
             var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
 
             // Act & Assert
-            await Assert.ThrowsAsync<UnauthorizedException>(() => service.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), _mocks.JwtConfig))
+            await Assert.ThrowsAsync<UnauthorizedException>(() => service.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), SampleData.JwtConfig))
                 .WaitAsync(CancellationToken.None);
             _mocks.UserManager.VerifyAll();
         }
@@ -96,7 +96,7 @@ namespace AccountsServiceTests.Tests
             var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
 
             // Act
-            var result = await service.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), _mocks.JwtConfig);
+            var result = await service.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), SampleData.JwtConfig);
 
             // Assert
             _mocks.UserManager.VerifyAll();

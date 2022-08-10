@@ -14,6 +14,7 @@ namespace AccountsServiceTests.TestingData
     internal class SampleData
     {
         internal const string SamplePassword = "ThisIsATestPass123";
+        internal static readonly IOptions<JwtConfigurationModel> JwtConfig = GetSampleJwtOptions();
 
         public static User GetSampleUser(bool isDeleted)
         {
@@ -34,6 +35,11 @@ namespace AccountsServiceTests.TestingData
                 Issuer = "SampleIssuer",
                 LifetimeHours = 1
             });
+        }
+
+        public static IList<UserLoginInfo> GetSampleUserLoginInfos()
+        {
+            return new List<UserLoginInfo>() { new UserLoginInfo("SampleLoginProvider", "SampleProviderKey", "SampleDisplayName") };
         }
 
         public static IList<string> GetSampleDefaultUserRoles()

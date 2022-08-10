@@ -22,7 +22,6 @@ namespace AccountsServiceTests.Mocks
         internal Mock<UserManager<User>> UserManager { get; set; } = null!;
         internal Mock<ILogger<AccountsSvc>> Logger { get; set; } = null!;
         internal AccountsServiceContext Context { get; set; } = null!;
-        internal IOptions<JwtConfigurationModel> JwtConfig { get; set; } = null!;
 
         internal TestingMocks()
         {
@@ -35,8 +34,6 @@ namespace AccountsServiceTests.Mocks
                 .Options;
 
             Context = new(options);
-
-            JwtConfig = SampleData.GetSampleJwtOptions();
         }
     }
 }
