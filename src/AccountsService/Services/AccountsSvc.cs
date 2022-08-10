@@ -44,7 +44,7 @@ namespace AccountsService.Services
         }
 
         private JwtSecurityToken CreateSecurityToken(IOptions<JwtConfigurationModel> securityConfig, List<Claim> claims)
-        {
+        { 
             var symSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(securityConfig.Value.Key));
             return new(
                 issuer: securityConfig.Value.Issuer,
@@ -142,7 +142,7 @@ namespace AccountsService.Services
 
         public async Task DeleteAsync(Guid id)
         {
-            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
+            var user = await _userManager.FindByIdAsync(id.ToString());
             if (user is null)
             {
                 _logger.LogInformation(LoggingForms.UserNotFound, id.ToString());
