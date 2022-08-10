@@ -12,7 +12,7 @@
         public const string AddedToRole = "The user [{id}] was successfully added to role {role}";
         public const string FailedToAddToRole = "The error occured while adding user [{id}] to role {role} [{error}]";
         public const string RoleNotFound = "Role {role} not found";
-        public const string UserAlredyInRole = "This user [{userId}] already in role {role}";
+        public const string UserAlreadyInRole = "This user [{userId}] already in role {role}";
         public const string Restored = "The user account [{identifier}] has been successfully restored";
 
         public const string DeletionAttempt = "There was attempt to delete user [{id}]";

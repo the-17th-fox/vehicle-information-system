@@ -205,7 +205,7 @@ namespace AccountsService.Services
             var inRole = await _userManager.IsInRoleAsync(user, findRole.Name);
             if (inRole)
             {
-                _logger.LogInformation(LoggingForms.UserAlredyInRole, userId, findRole.Name);
+                _logger.LogInformation(LoggingForms.UserAlreadyInRole, userId, findRole.Name);
                 throw new Exception($"This user [{userId}] already in role {role}");
             }
 
