@@ -48,5 +48,15 @@ namespace AccountsService.Controllers
 
             return Ok(accountsVM);
         }
+
+        [HttpPatch("[action]")]
+        public async Task<IActionResult> ChangeRoleAsync(Guid userId, string role)
+        {
+            await _accountsSvc.ChangeRoleAsync(userId, role);
+
+            _logger.LogInformation(LoggingForms.AddedToRole, userId, role);
+
+            return Ok();
+        }
     }
 }
