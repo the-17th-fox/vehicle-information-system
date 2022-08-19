@@ -16,5 +16,6 @@ namespace AccountsService.Services
         public Task<PagedList<User>> GetAllAsync(PageParametersViewModel pageParams);
         public Task<string> LoginAsync(string email, string password, IOptions<JwtConfigurationModel> securityConfig);
         public Task<User> SaveExternalUserAsync(ExternalLoginInfo loginInfo);
+        public Task<PagedList<LoggingRecord>> GetAllLogsAsync(LogsParametersViewModel logsParams, PageParametersViewModel pageParams);
     }
 }

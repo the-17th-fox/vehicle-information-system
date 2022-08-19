@@ -47,6 +47,23 @@ namespace AccountsService.Controllers
             _signInManager = signInManager;
         }
 
+        // Temporaly has been moved from the AdminController in case of testing
+        // Will be moved back in the end
+        // todo: add prettier binding from the url for logsParams
+        //[Authorize(Policy = AccountsPolicies.DefaultRights, AuthenticationSchemes = "Identity.Application,Bearer")]
+        [AllowAnonymous]
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetAllLogsAsync([FromQuery] LogsParametersViewModel logsParams, [FromQuery] PageParametersViewModel pageParams)
+        {
+            _logger.LogInformation(LoggingForms.LogsRetrievingAttempt, _userId, _userEmail);
+
+            var result = await _accountsSvc.GetAllLogsAsync(logsParams, pageParams);
+
+            _logger.LogInformation(LoggingForms.LogsRetrieved, _userId, _userEmail);
+
+            return Ok(result);
+        }
+
         [AllowAnonymous]
         [HttpPost("[action]")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegistrationViewModel viewModel)
@@ -59,13 +76,6 @@ namespace AccountsService.Controllers
             _logger.LogInformation(AccountsLoggingForms.Registred, user.UserName, user.Email);
 
             return Ok();
-        }
-
-        [Authorize(AuthenticationSchemes = "Identity.Application")]
-        [HttpGet]
-        public IActionResult Get()
-        {
-            return Ok(_userId + " " + _userEmail);
         }
 
         [AllowAnonymous]
