@@ -35,6 +35,8 @@ services:
       Serilog__WriteTo__1__Name: "MongoDB"
       Serilog__WriteTo__1__Args__databaseUrl: "mongodb://logs:27017/logs"
       Serilog__WriteTo__1__Args__collectionName: "logs"
+      MongoDbConfiguration__LogsCollection__ConnectionString: "mongodb://logs:27017/logs"
+      MongoDbConfiguration__LogsCollection__CollectionName: "logs"
     networks:
       - vis
     depends_on:
