@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using MongoDB.Driver;
+using MongoDB.Bson;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -22,12 +24,19 @@ namespace AccountsService.Services
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly ILogger<AccountsSvc> _logger;
         private readonly AccountsServiceContext _context;
-        public AccountsSvc(UserManager<User> userManager, ILogger<AccountsSvc> logger, AccountsServiceContext context, RoleManager<IdentityRole<Guid>> roleManager)
+        private readonly IOptions<LogsContextConfiguration> _mongoConfig;
+        public AccountsSvc(
+            UserManager<User> userManager, 
+            ILogger<AccountsSvc> logger, 
+            AccountsServiceContext context, 
+            RoleManager<IdentityRole<Guid>> roleManager, 
+            IOptions<LogsContextConfiguration> mongoConfig)
         {
             _userManager = userManager;
             _logger = logger;
             _roleManager = roleManager;
             _context = context;
+            _mongoConfig = mongoConfig;
         }
 
         private List<Claim> GetClaims(User user, IList<string> userRoles)
@@ -246,6 +255,41 @@ namespace AccountsService.Services
             await _userManager.AddLoginAsync(user, loginInfo);
 
             return user;
+        }
+
+        public async Task<PagedList<LoggingRecord>> GetAllLogsAsync(LogsParametersViewModel logsParams, PageParametersViewModel pageParams)
+        {
+            if (string.IsNullOrWhiteSpace(_mongoConfig.Value.ConnectionString))
+            {
+                var argument = nameof(_mongoConfig.Value.ConnectionString);
+                _logger.LogError(LoggingForms.ParameterMissed, argument);
+                throw new InvalidParamsException(LoggingForms.ParameterMissed.Replace("{argument}", argument));
+            }
+
+            if (string.IsNullOrWhiteSpace(_mongoConfig.Value.CollectionName))
+            {
+                var argument = nameof(_mongoConfig.Value.CollectionName);
+                _logger.LogError(LoggingForms.ParameterMissed, argument);
+                throw new InvalidParamsException(LoggingForms.ParameterMissed.Replace("{argument}", argument));
+            }
+
+            var context = new MongoDbContext<LoggingRecord>(_mongoConfig.Value.ConnectionString, _mongoConfig.Value.CollectionName);
+
+            _logger.LogInformation(LoggingForms.DbConnectionEstablished, context.DatabaseName);
+
+            var logsColl = context.GetCollection();
+
+            var fromDate = new DateTime(
+                year: logsParams.FromYear, 
+                month: logsParams.FromMonth, 
+                day: logsParams.FromDay);
+
+            var logs = logsColl
+                //.Find(l => Enum.Parse<LogLevel>(l.LogLevel) >= logsParams.LowestLoggingLevel)
+                .Find(l => true);
+                //.SortByDescending(l => l.UtcTimestamp);
+
+            return await PagedList<LoggingRecord>.ToPagedListAsync(logs, pageParams.PageNumber, pageParams.PageSize);
         }
     }
 }

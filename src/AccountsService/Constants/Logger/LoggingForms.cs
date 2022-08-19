@@ -9,10 +9,10 @@
         public const string LoginAttempt = "The user [{email}] is trying to log in";
         public const string LoggedIn = "The user [{email}] was successfully logged in";
 
-        public const string AddedToRole = "The user [{id}] was successfully added to role {role}";
+        public const string AddedToRole = "The user [{id}] was successfully added to role [{role}]";
         public const string FailedToAddToRole = "The error occured while adding user [{id}] to role {role} [{error}]";
-        public const string RoleNotFound = "Role {role} not found";
-        public const string UserAlreadyInRole = "This user [{userId}] already in role {role}";
+        public const string RoleNotFound = "Role [{role}] not found";
+        public const string UserAlreadyInRole = "This user [{userId}] already in role [{role}]";
         public const string Restored = "The user account [{identifier}] has been successfully restored";
 
         public const string DeletionAttempt = "There was attempt to delete user [{id}]";
@@ -29,9 +29,17 @@
         public const string NoUsersFound = "No users were found";
 
         public const string ExceptionForm = "[{exception}] has occured with status code [{statusCode}]: [{message}]";
+        public const string ParameterMissed = "Required parameter [{argument}] is missing: null, empty, etc";
 
         public const string GoogleAuthPassed = "The user [{GoogleID}]:[{email}] has successfully passed the Google external authentication";
         public const string GoogleLoggedIn = "The user [{GoogleID}]:[{email}] was successfully logged in through the Google";
         public const string GoogleLogout = "The user (google) [{id}]:[{email}] has successfully logged out";
+
+        public const string LogsRetrievingAttempt = "The user [{username}]:[{email}] is trying to retrieve logs from the database";
+        public const string LogsRetrieved = "The user [{username}]:[{email}] has successfully retrieved logs from the database";
+        public const string DbConnectionEstablished = "Connection to the database [{params}] has been successfully established";
+        
+
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MongoDB.Driver;
 
 namespace AccountsService.Services.Pagination
 {
@@ -44,6 +45,14 @@ namespace AccountsService.Services.Pagination
             AddRange(items);
         }
 
+        /// <summary>
+        /// Used to form a pagedList from provided query and page parameters.
+        /// Does not work properly with MongoCollections' IQueryable implementation, use overrided method with IFindFluent instead.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
         public static async Task<PagedList<T>> ToPagedListAsync(IQueryable<T> query, int pageNumber, int pageSize)
         {
             var itemsCount = query.Count();
@@ -53,6 +62,25 @@ namespace AccountsService.Services.Pagination
                 .ToListAsync();
 
             return new PagedList<T>(items, itemsCount, pageNumber, pageSize);
+        }
+
+        /// <summary>
+        /// Used to form a pagedList from provided query and page parameters.
+        /// Work with MongoCollections properly.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
+        public static async Task<PagedList<T>> ToPagedListAsync(IFindFluent<T, T> query, int pageNumber, int pageSize)
+        {
+            var itemsCount = query.CountDocuments();
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Limit(pageSize)
+                .ToListAsync();
+
+            return new PagedList<T>(items, (int)itemsCount, pageNumber, pageSize);
         }
     }
 }
