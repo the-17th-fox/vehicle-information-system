@@ -25,6 +25,7 @@ builder.Services.AddDbContext<AccountsServiceContext>(opt =>
 //Services
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 builder.Services.AddScoped<IAccountsSvc, AccountsSvc>();
+builder.Services.Configure<LogsContextConfiguration>(builder.Configuration.GetSection("MongoDbConfiguration").GetSection("LogsCollection"));
 
 //Auth section
 builder.Services.Configure<JwtConfigurationModel>(builder.Configuration.GetSection("Authentication").GetSection("Jwt"));
