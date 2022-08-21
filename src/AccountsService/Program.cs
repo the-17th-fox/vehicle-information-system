@@ -15,6 +15,7 @@ using System.Security.Claims;
 using Common.Models.AccountsService;
 using Common.Utilities;
 using Common.Constants.Auth;
+using AccountsService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
