@@ -11,10 +11,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using MongoDB.Driver;
-using MongoDB.Bson;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using AccountsService.Infrastructure;
 
 namespace AccountsService.Services
 {
@@ -278,16 +278,23 @@ namespace AccountsService.Services
             _logger.LogInformation(LoggingForms.DbConnectionEstablished, context.DatabaseName);
 
             var logsColl = context.GetCollection();
-
+            
             var fromDate = new DateTime(
-                year: logsParams.FromYear, 
-                month: logsParams.FromMonth, 
+                year: logsParams.FromYear,
+                month: logsParams.FromMonth,
                 day: logsParams.FromDay);
 
+            var logLevelFilter = Builders<LoggingRecord>.Filter
+                .Eq(nameof(LoggingRecord.LogLevel), Enum.GetName<LogLevel>(logsParams.LowestLoggingLevel));
+
+            var dateFilter = Builders<LoggingRecord>.Filter
+                .Gte(nameof(LoggingRecord.UtcTimestamp), $"{fromDate:u}");
+
+            var sort = Builders<LoggingRecord>.Sort.Descending(nameof(LoggingRecord.UtcTimestamp));
+
             var logs = logsColl
-                //.Find(l => Enum.Parse<LogLevel>(l.LogLevel) >= logsParams.LowestLoggingLevel)
-                .Find(l => true);
-                //.SortByDescending(l => l.UtcTimestamp);
+                .Find(Builders<LoggingRecord>.Filter.And(logLevelFilter, dateFilter))
+                .Sort(sort);
 
             return await PagedList<LoggingRecord>.ToPagedListAsync(logs, pageParams.PageNumber, pageParams.PageSize);
         }
