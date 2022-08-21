@@ -60,10 +60,12 @@ namespace AccountsService.Controllers
             _logger.LogInformation(LoggingForms.LogsRetrievingAttempt, _userId, _userEmail);
 
             var result = await _accountsSvc.GetAllLogsAsync(logsParams, pageParams);
+            
+            var model = _mapper.Map<PageViewModel<LoggingRecordViewModel>>(result);
 
             _logger.LogInformation(LoggingForms.LogsRetrieved, _userId, _userEmail);
 
-            return Ok(result);
+            return Ok(model);
         }
 
         [AllowAnonymous]

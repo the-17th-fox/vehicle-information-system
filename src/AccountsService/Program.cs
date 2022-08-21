@@ -14,6 +14,7 @@ using Serilog;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
+using AccountsService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
