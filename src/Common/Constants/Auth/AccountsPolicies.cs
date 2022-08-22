@@ -1,4 +1,4 @@
-﻿namespace AccountsService.Constants.Auth
+﻿namespace Common.Constants.Auth
 {
     /// <summary>
     /// Provides identity policies name. Should be used instead of direct role's-name specification

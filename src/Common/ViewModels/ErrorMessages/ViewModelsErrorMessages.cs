@@ -1,4 +1,4 @@
-﻿namespace AccountsService.ViewModels.ErrorMessages
+﻿namespace Common.ViewModels.ErrorMessages
 {
     public class ViewModelsErrorMessages
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace AccountsService.Constants.Auth
+namespace Common.Constants.Auth
 {
     public class AccountsRoles
     {

@@ -1,4 +1,4 @@
-﻿namespace AccountsService.Exceptions.CustomExceptions
+﻿namespace Common.CustomExceptions
 {
     public class NotFoundException : Exception
     {
