@@ -1,8 +1,8 @@
-﻿using AccountsService.Exceptions.CustomExceptions;
-using AccountsService.Models;
-using AccountsService.Services;
+﻿using AccountsService.Services;
 using AccountsServiceTests.Mocks;
 using AccountsServiceTests.TestingData;
+using Common.CustomExceptions;
+using Common.Models.AccountsService;
 using Microsoft.AspNetCore.Identity;
 using Moq;
 using System;
@@ -29,7 +29,7 @@ namespace AccountsServiceTests.Tests
                 .ReturnsAsync(user)
                 .Verifiable();
 
-            var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
+            var service = TestingMocks.GetAccountsSvc(_mocks);
 
             // Act & Assert
             await Assert.ThrowsAsync<NotFoundException>(() => service.DeleteAsync(It.IsAny<Guid>()))
@@ -47,7 +47,7 @@ namespace AccountsServiceTests.Tests
                 .ReturnsAsync(user)
                 .Verifiable();
 
-            var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
+            var service = TestingMocks.GetAccountsSvc(_mocks);
 
             // Act & Assert
             await Assert.ThrowsAsync<Exception>(() => service.DeleteAsync(It.IsAny<Guid>()))
@@ -77,7 +77,7 @@ namespace AccountsServiceTests.Tests
                 .ReturnsAsync(IdentityResult.Success)
                 .Verifiable();
 
-            var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
+            var service = TestingMocks.GetAccountsSvc(_mocks);
 
             // Act
             var result = service.DeleteAsync(It.IsAny<Guid>());

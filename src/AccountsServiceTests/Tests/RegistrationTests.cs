@@ -1,13 +1,8 @@
-using AccountsService.Exceptions.CustomExceptions;
-using AccountsService.Infrastructure.Context;
-using AccountsService.Models;
-using AccountsService.Services;
 using AccountsServiceTests.Mocks;
 using AccountsServiceTests.TestingData;
+using Common.CustomExceptions;
+using Common.Models.AccountsService;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Logging;
 using Moq;
 using System.Threading;
 using Xunit;
@@ -28,7 +23,7 @@ namespace AccountsServiceTests.Tests
                 .ReturnsAsync(user)
                 .Verifiable();
 
-            var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
+            var service = TestingMocks.GetAccountsSvc(_mocks);
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidParamsException>(() => service.RegisterAsync(user, SampleData.SamplePassword))
@@ -46,7 +41,7 @@ namespace AccountsServiceTests.Tests
                 .ReturnsAsync(user)
                 .Verifiable();
 
-            var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
+            var service = TestingMocks.GetAccountsSvc(_mocks);
 
             // Act
             var result = service.RegisterAsync(user, SampleData.SamplePassword);
@@ -76,7 +71,7 @@ namespace AccountsServiceTests.Tests
                 .ReturnsAsync(IdentityResult.Success)
                 .Verifiable();
 
-            var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
+            var service = TestingMocks.GetAccountsSvc(_mocks);
 
             // Act 
             var result = service.RegisterAsync(user, SampleData.SamplePassword)
