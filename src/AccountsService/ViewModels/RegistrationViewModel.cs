@@ -1,4 +1,4 @@
-﻿using AccountsService.ViewModels.ErrorMessages;
+﻿using Common.ViewModels.ErrorMessages;
 using System.ComponentModel.DataAnnotations;
 
 namespace AccountsService.ViewModels
@@ -9,10 +9,10 @@ namespace AccountsService.ViewModels
         [StringLength(maximumLength: 15, MinimumLength = 3, ErrorMessage = ViewModelsErrorMessages.OutOfRange)]
         public string UserName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage =ViewModelsErrorMessages.RequiredNotProvided)]
+        [Required(ErrorMessage = ViewModelsErrorMessages.RequiredNotProvided)]
         public string Password { get; set; } = string.Empty;
         
-        [Required(ErrorMessage =ViewModelsErrorMessages.RequiredNotProvided)]
+        [Required(ErrorMessage = ViewModelsErrorMessages.RequiredNotProvided)]
         [EmailAddress(ErrorMessage = ViewModelsErrorMessages.IncorrectEmail)]
         public string Email { get; set; } = string.Empty;
     }

@@ -1,8 +1,8 @@
-﻿namespace AccountsService.ViewModels
+﻿namespace Common.ViewModels
 {
     public class PageViewModel<T>
     {
-        public List<T> Items { get; set; }
+        public List<T> Items { get; set; } = new();
         public int CurrentPage { get; set; }
         public int TotalPages { get; set; }
         public bool HasNextPage { get; set; }

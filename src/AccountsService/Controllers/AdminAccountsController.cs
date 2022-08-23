@@ -1,8 +1,9 @@
-﻿using AccountsService.Constants.Auth;
-using AccountsService.Constants.Logger;
-using AccountsService.Services;
+﻿using AccountsService.Services;
+using AccountsService.Utilities;
 using AccountsService.ViewModels;
 using AutoMapper;
+using Common.Constants.Auth;
+using Common.ViewModels;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -27,11 +28,11 @@ namespace AccountsService.Controllers
         [HttpDelete("[action]")]
         public async Task<IActionResult> DeleteAsync(Guid id)
         {
-            _logger.LogInformation(LoggingForms.DeletionAttempt, id);
+            _logger.LogInformation(AccountsLoggingForms.DeletionAttempt, id);
 
             await _accountsSvc.DeleteAsync(id);
 
-            _logger.LogInformation(LoggingForms.UserDeleted, id);
+            _logger.LogInformation(AccountsLoggingForms.UserDeleted, id);
 
             return Ok();
         }
@@ -39,12 +40,12 @@ namespace AccountsService.Controllers
         [HttpGet("[action]")]
         public async Task<IActionResult> GetAllUsersAsync([FromQuery] PageParametersViewModel pageParams)
         {
-            _logger.LogInformation(LoggingForms.TryingToGetUsers);
+            _logger.LogInformation(AccountsLoggingForms.TryingToGetUsers);
 
             var accounts = await _accountsSvc.GetAllAsync(pageParams);
             var accountsVM = _mapper.Map<PageViewModel<UserViewModel>>(accounts);
 
-            _logger.LogInformation(LoggingForms.GotUsers);
+            _logger.LogInformation(AccountsLoggingForms.GotUsers);
 
             return Ok(accountsVM);
         }
@@ -54,7 +55,7 @@ namespace AccountsService.Controllers
         {
             await _accountsSvc.ChangeRoleAsync(userId, role);
 
-            _logger.LogInformation(LoggingForms.AddedToRole, userId, role);
+            _logger.LogInformation(AccountsLoggingForms.AddedToRole, userId, role);
 
             return Ok();
         }

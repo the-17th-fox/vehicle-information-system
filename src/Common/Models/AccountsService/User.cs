@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace AccountsService.Models
+namespace Common.Models.AccountsService
 {
     public class User : IdentityUser<Guid>
     {

@@ -1,7 +1,5 @@
-using AccountsService.Constants.Auth;
 using AccountsService.Exceptions;
 using AccountsService.Infrastructure.Context;
-using AccountsService.Models;
 using AccountsService.Services;
 using AccountsService.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -14,6 +12,9 @@ using Serilog;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using System.Security.Claims;
+using Common.Models.AccountsService;
+using Common.Utilities;
+using Common.Constants.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 

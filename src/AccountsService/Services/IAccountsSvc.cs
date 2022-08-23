@@ -1,11 +1,9 @@
-﻿using AccountsService.Models;
-using AccountsService.Services.Pagination;
+﻿using Common.Utilities.Pagination;
 using AccountsService.Utilities;
-using AccountsService.ViewModels;
+using Common.Models.AccountsService;
+using Common.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 namespace AccountsService.Services
 {

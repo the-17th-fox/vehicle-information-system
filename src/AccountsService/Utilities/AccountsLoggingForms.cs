@@ -1,11 +1,13 @@
-﻿namespace AccountsService.Constants.Logger
+﻿using Common.Constants.Logger;
+
+namespace AccountsService.Utilities
 {
-    public class LoggingForms
+    public class AccountsLoggingForms : CommonLoggingForms
     {
         public const string RegistrationAttempt = "The user [{username}]:[{email}] is trying to register";
         public const string Registred = "The user [{username}]:[{email}] was successfully registred";
         public const string FailedToRegister = "The user [{username}]:[{email}] has failed the registration: [{error}]";
-    
+
         public const string LoginAttempt = "The user [{email}] is trying to log in";
         public const string LoggedIn = "The user [{email}] was successfully logged in";
 
@@ -27,8 +29,6 @@
         public const string TryingToGetUsers = "Trying to get users";
         public const string GotUsers = "Got a list of users";
         public const string NoUsersFound = "No users were found";
-
-        public const string ExceptionForm = "[{exception}] has occured with status code [{statusCode}]: [{message}]";
 
         public const string GoogleAuthPassed = "The user [{GoogleID}]:[{email}] has successfully passed the Google external authentication";
         public const string GoogleLoggedIn = "The user [{GoogleID}]:[{email}] was successfully logged in through the Google";

@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace AccountsService.Services.Pagination
+namespace Common.Utilities.Pagination
 {
     public class PagedList<T> : List<T>
     {

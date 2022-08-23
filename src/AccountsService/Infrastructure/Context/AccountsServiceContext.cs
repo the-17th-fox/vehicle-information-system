@@ -1,5 +1,5 @@
-﻿using AccountsService.Constants.Auth;
-using AccountsService.Models;
+﻿using Common.Constants.Auth;
+using Common.Models.AccountsService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;

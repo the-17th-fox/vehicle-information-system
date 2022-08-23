@@ -1,8 +1,7 @@
-﻿using AccountsService.Exceptions.CustomExceptions;
-using AccountsService.Models;
-using AccountsService.Services;
-using AccountsServiceTests.Mocks;
+﻿using AccountsServiceTests.Mocks;
 using AccountsServiceTests.TestingData;
+using Common.CustomExceptions;
+using Common.Models.AccountsService;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -28,7 +27,7 @@ namespace AccountsServiceTests.Tests
                 .ReturnsAsync(user)
                 .Verifiable();
 
-            var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
+            var service = TestingMocks.GetAccountsSvc(_mocks);
 
             // Act & Assert
             await Assert.ThrowsAsync<NotFoundException>(() => service.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), null!))
@@ -46,7 +45,7 @@ namespace AccountsServiceTests.Tests
                 .ReturnsAsync(user)
                 .Verifiable();
 
-            var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
+            var service = TestingMocks.GetAccountsSvc(_mocks);
 
             // Act & Assert
             await Assert.ThrowsAsync<NotFoundException>(() => service.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), null!))
@@ -68,7 +67,7 @@ namespace AccountsServiceTests.Tests
                 .ReturnsAsync(false)
                 .Verifiable();
 
-            var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
+            var service = TestingMocks.GetAccountsSvc(_mocks);
 
             // Act & Assert
             await Assert.ThrowsAsync<UnauthorizedException>(() => service.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), SampleData.JwtConfig))
@@ -93,7 +92,7 @@ namespace AccountsServiceTests.Tests
             _mocks.UserManager.Setup(x => x.GetRolesAsync(user))
                 .ReturnsAsync(SampleData.GetSampleDefaultUserRoles);
 
-            var service = new AccountsSvc(_mocks.UserManager.Object, _mocks.Logger.Object, _mocks.Context);
+            var service = TestingMocks.GetAccountsSvc(_mocks);
 
             // Act
             var result = await service.LoginAsync(It.IsAny<string>(), It.IsAny<string>(), SampleData.JwtConfig);

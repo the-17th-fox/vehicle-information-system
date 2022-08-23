@@ -1,11 +1,9 @@
-﻿using AccountsService.Constants.Auth;
-using AccountsService.Constants.Logger;
-using AccountsService.Exceptions.CustomExceptions;
-using AccountsService.Models;
-using AccountsService.Services;
+﻿using AccountsService.Services;
 using AccountsService.Utilities;
 using AccountsService.ViewModels;
 using AutoMapper;
+using Common.Constants.Auth;
+using Common.Models.AccountsService;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -53,12 +51,12 @@ namespace AccountsService.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegistrationViewModel viewModel)
         {
-            _logger.LogInformation(LoggingForms.RegistrationAttempt, viewModel.UserName, viewModel.Email);
+            _logger.LogInformation(AccountsLoggingForms.RegistrationAttempt, viewModel.UserName, viewModel.Email);
 
             var user = _mapper.Map<User>(viewModel);
             await _accountsSvc.RegisterAsync(user, viewModel.Password);
 
-            _logger.LogInformation(LoggingForms.Registred, user.UserName, user.Email);
+            _logger.LogInformation(AccountsLoggingForms.Registred, user.UserName, user.Email);
 
             return Ok();
         }
@@ -74,11 +72,11 @@ namespace AccountsService.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> LoginAsync([FromBody] LoginViewModel viewModel)
         {
-            _logger.LogInformation(LoggingForms.LoginAttempt, viewModel.Email);
+            _logger.LogInformation(AccountsLoggingForms.LoginAttempt, viewModel.Email);
 
             var token = await _accountsSvc.LoginAsync(viewModel.Email, viewModel.Password, _jwtConfig);
 
-            _logger.LogInformation(LoggingForms.LoggedIn, viewModel.Email);
+            _logger.LogInformation(AccountsLoggingForms.LoggedIn, viewModel.Email);
 
             return Ok(token);
         }
@@ -87,14 +85,14 @@ namespace AccountsService.Controllers
         [HttpDelete("[action]")]
         public async Task<IActionResult> DeleteAsync()
         {
-            _logger.LogInformation(LoggingForms.DeletionAttempt, _userId);
+            _logger.LogInformation(AccountsLoggingForms.DeletionAttempt, _userId);
 
             await _accountsSvc.DeleteAsync(Guid.Parse(_userId));
 
             if (User?.Identity?.AuthenticationType != "Bearer")
                 await LogoutGoogleAsync();
 
-            _logger.LogInformation(LoggingForms.UserDeleted, _userId);
+            _logger.LogInformation(AccountsLoggingForms.UserDeleted, _userId);
 
             return Ok();
         }
@@ -114,7 +112,7 @@ namespace AccountsService.Controllers
         {
             await _signInManager.SignOutAsync();
 
-            _logger.LogInformation(LoggingForms.GoogleLogout, _userId, _userEmail);            
+            _logger.LogInformation(AccountsLoggingForms.GoogleLogout, _userId, _userEmail);            
 
             return Ok();
         }
@@ -128,11 +126,11 @@ namespace AccountsService.Controllers
             var googleId = loginInfo.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
             var email = loginInfo.Principal.FindFirstValue(ClaimTypes.Email);
 
-            _logger.LogInformation(LoggingForms.GoogleAuthPassed, googleId, email);
+            _logger.LogInformation(AccountsLoggingForms.GoogleAuthPassed, googleId, email);
 
             var signInResult = await _signInManager.ExternalLoginSignInAsync(loginInfo.LoginProvider, loginInfo.ProviderKey, isPersistent: false);
 
-            // If the user has never been logged in -> create a record in the users table
+            // If the user has never been logged in -> creates a record in the users table
             
             if(!signInResult.Succeeded)
             {
@@ -141,7 +139,7 @@ namespace AccountsService.Controllers
                 await _signInManager.SignInAsync(user, isPersistent: false);
             }
             
-            _logger.LogInformation(LoggingForms.GoogleLoggedIn, _userId, email);
+            _logger.LogInformation(AccountsLoggingForms.GoogleLoggedIn, _userId, email);
 
             return Ok();
         }

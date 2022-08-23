@@ -1,4 +1,4 @@
-﻿namespace AccountsService.ViewModels
+﻿namespace Common.ViewModels
 {
     public class PageParametersViewModel
     {

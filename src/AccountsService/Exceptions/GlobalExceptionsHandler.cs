@@ -1,6 +1,5 @@
-﻿using AccountsService.Constants.Logger;
-using AccountsService.Exceptions.CustomExceptions;
-using AccountsService.Utilities;
+﻿using AccountsService.Utilities;
+using Common.CustomExceptions;
 using System.Net;
 using System.Text.Json;
 
@@ -43,7 +42,7 @@ namespace AccountsService.Exceptions
 
                     default:
                         response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                        _logger.LogError(LoggingForms.ExceptionForm, exception.GetType().Name, response.StatusCode, exception.Message);
+                        _logger.LogError(AccountsLoggingForms.ExceptionForm, exception.GetType().Name, response.StatusCode, exception.Message);
                         break;
                 }
 
