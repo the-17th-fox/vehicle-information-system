@@ -1,9 +1,6 @@
-﻿using Microsoft.Extensions.Options;
-using MongoDB.Driver;
-using AccountsService.Utilities;
-using MongoDB.Bson;
+﻿using MongoDB.Driver;
 
-namespace AccountsService.Infrastructure.Context
+namespace LogsViewerService.Infrastructure.Context
 {
     public class MongoDbContext<T>
     {

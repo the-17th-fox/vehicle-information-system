@@ -23,19 +23,16 @@ namespace AccountsService.Services
         private readonly RoleManager<IdentityRole<Guid>> _roleManager;
         private readonly ILogger<AccountsSvc> _logger;
         private readonly AccountsServiceContext _context;
-        private readonly IOptions<LogsContextConfiguration> _mongoConfig;
         public AccountsSvc(
             UserManager<User> userManager, 
             ILogger<AccountsSvc> logger, 
             AccountsServiceContext context, 
-            RoleManager<IdentityRole<Guid>> roleManager, 
-            IOptions<LogsContextConfiguration> mongoConfig)
+            RoleManager<IdentityRole<Guid>> roleManager)
         {
             _userManager = userManager;
             _logger = logger;
             _roleManager = roleManager;
             _context = context;
-            _mongoConfig = mongoConfig;
         }
 
         private List<Claim> GetClaims(User user, IList<string> userRoles)
@@ -70,13 +67,13 @@ namespace AccountsService.Services
             var user = await _userManager.FindByEmailAsync(email);
             if (user is null || user.IsDeleted)
             {
-                _logger.LogInformation(AccountsLoggingForms.UserNotFound, email);
+                _logger.LogInformation(LogEventType.UserNotFound, email);
                 throw new NotFoundException($"User with provided email {email} was not found") ;
             }
 
             if (!await _userManager.CheckPasswordAsync(user, password))
             {
-                _logger.LogInformation(AccountsLoggingForms.InvalidCredentials, email);
+                _logger.LogInformation(LogEventType.InvalidCredentials, email);
                 throw new UnauthorizedException();
             }
 
@@ -92,7 +89,7 @@ namespace AccountsService.Services
             var existingUser = await _userManager.FindByEmailAsync(user.Email);
             if (existingUser is not null && !existingUser.IsDeleted)
             {
-                _logger.LogInformation(AccountsLoggingForms.FailedToRegister, user.UserName, user.Email, (AccountsLoggingForms.UserAlreadyExists, user.Email));
+                _logger.LogInformation(LogEventType.FailedToRegister, user.UserName, user.Email, (LogEventType.UserAlreadyExists, user.Email));
                 throw new InvalidParamsException("There is already a user with this email");
             }
 
@@ -109,7 +106,7 @@ namespace AccountsService.Services
 
             if (!result.Succeeded)
             {
-                _logger.LogInformation(AccountsLoggingForms.FailedToRegister, user.UserName, user.Email, result.Errors.First<IdentityError>().Description);
+                _logger.LogInformation(LogEventType.FailedToRegister, user.UserName, user.Email, result.Errors.First<IdentityError>().Description);
                 throw new InvalidParamsException(result.Errors.First<IdentityError>().Description);
             }
 
@@ -145,7 +142,7 @@ namespace AccountsService.Services
                 }
             }
 
-            _logger.LogInformation(AccountsLoggingForms.Restored, oldUser.Email);
+            _logger.LogInformation(LogEventType.Restored, oldUser.Email);
             
             return oldUser;
         }
@@ -155,13 +152,13 @@ namespace AccountsService.Services
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user is null)
             {
-                _logger.LogInformation(AccountsLoggingForms.UserNotFound, id.ToString());
+                _logger.LogInformation(LogEventType.UserNotFound, id.ToString());
                 throw new NotFoundException($"User with provided id [{id}] was not found");
             }
 
             if(user.IsDeleted == true)
             {
-                _logger.LogInformation(AccountsLoggingForms.AlreadyDeleted, id);
+                _logger.LogInformation(LogEventType.AlreadyDeleted, id);
                 throw new Exception($"User with provided id [{id}] is already deleted");
             }
 
@@ -177,7 +174,7 @@ namespace AccountsService.Services
             if (!result.Succeeded)
             {
                 var error = result.Errors.First<IdentityError>().Description;
-                _logger.LogInformation(AccountsLoggingForms.FailedToDelete, id, error);
+                _logger.LogInformation(LogEventType.FailedToDelete, id, error);
                 throw new Exception(error);
             }
         }
@@ -187,7 +184,7 @@ namespace AccountsService.Services
             var users = _userManager.Users.AsNoTracking();
             if(!users.Any())
             {
-                _logger.LogInformation(AccountsLoggingForms.NoUsersFound);
+                _logger.LogInformation(LogEventType.NoUsersFound);
                 throw new NotFoundException("No users were found");
             }
 
@@ -199,21 +196,21 @@ namespace AccountsService.Services
             var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
             if (user is null)
             {
-                _logger.LogInformation(AccountsLoggingForms.UserNotFound, userId);
+                _logger.LogInformation(LogEventType.UserNotFound, userId);
                 throw new NotFoundException($"User with provided id [{userId}] was not found");
             }
 
             var findRole = await _roleManager.FindByNameAsync(role);
             if (findRole is null)
             {
-                _logger.LogInformation(AccountsLoggingForms.RoleNotFound, role);
+                _logger.LogInformation(LogEventType.RoleNotFound, role);
                 throw new NotFoundException($"Role {role} not found");
             }
 
             var inRole = await _userManager.IsInRoleAsync(user, findRole.Name);
             if (inRole)
             {
-                _logger.LogInformation(AccountsLoggingForms.UserAlreadyInRole, userId, findRole.Name);
+                _logger.LogInformation(LogEventType.UserAlreadyInRole, userId, findRole.Name);
                 throw new Exception($"This user [{userId}] already in role {role}");
             }
 
@@ -223,7 +220,7 @@ namespace AccountsService.Services
             if (!result.Succeeded)
             {
                 var error = result.Errors.First<IdentityError>().Description;
-                _logger.LogInformation(AccountsLoggingForms.FailedToAddToRole, userId, role, error);
+                _logger.LogInformation(LogEventType.FailedToAddToRole, userId, role, error);
                 throw new Exception(error);
             }
         }
@@ -235,7 +232,7 @@ namespace AccountsService.Services
             var existingUser = await _userManager.FindByEmailAsync(email);
             if(existingUser is not null && !existingUser.IsDeleted)
             {
-                _logger.LogInformation(AccountsLoggingForms.UserAlreadyExists, email);
+                _logger.LogInformation(LogEventType.UserAlreadyExists, email);
                 throw new InvalidParamsException("There is already a user with this email");
             }
 
@@ -254,48 +251,6 @@ namespace AccountsService.Services
             await _userManager.AddLoginAsync(user, loginInfo);
 
             return user;
-        }
-
-        public async Task<PagedList<LoggingRecord>> GetAllLogsAsync(LogsParametersViewModel logsParams, PageParametersViewModel pageParams)
-        {
-            if (string.IsNullOrWhiteSpace(_mongoConfig.Value.ConnectionString))
-            {
-                var argument = nameof(_mongoConfig.Value.ConnectionString);
-                _logger.LogError(LoggingForms.ParameterMissed, argument);
-                throw new InvalidParamsException(LoggingForms.ParameterMissed.Replace("{argument}", argument));
-            }
-
-            if (string.IsNullOrWhiteSpace(_mongoConfig.Value.CollectionName))
-            {
-                var argument = nameof(_mongoConfig.Value.CollectionName);
-                _logger.LogError(LoggingForms.ParameterMissed, argument);
-                throw new InvalidParamsException(LoggingForms.ParameterMissed.Replace("{argument}", argument));
-            }
-
-            var context = new MongoDbContext<LoggingRecord>(_mongoConfig.Value.ConnectionString, _mongoConfig.Value.CollectionName);
-
-            _logger.LogInformation(LoggingForms.DbConnectionEstablished, context.DatabaseName);
-
-            var logsColl = context.GetCollection();
-            
-            var fromDate = new DateTime(
-                year: logsParams.FromYear,
-                month: logsParams.FromMonth,
-                day: logsParams.FromDay);
-
-            var logLevelFilter = Builders<LoggingRecord>.Filter
-                .Eq(nameof(LoggingRecord.LogLevel), Enum.GetName<LogLevel>(logsParams.LowestLoggingLevel));
-
-            var dateFilter = Builders<LoggingRecord>.Filter
-                .Gte(nameof(LoggingRecord.UtcTimestamp), $"{fromDate:u}");
-
-            var sort = Builders<LoggingRecord>.Sort.Descending(nameof(LoggingRecord.UtcTimestamp));
-
-            var logs = logsColl
-                .Find(Builders<LoggingRecord>.Filter.And(logLevelFilter, dateFilter))
-                .Sort(sort);
-
-            return await PagedList<LoggingRecord>.ToPagedListAsync(logs, pageParams.PageNumber, pageParams.PageSize);
         }
     }
 }

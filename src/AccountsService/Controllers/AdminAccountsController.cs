@@ -28,11 +28,11 @@ namespace AccountsService.Controllers
         [HttpDelete("[action]")]
         public async Task<IActionResult> DeleteAsync(Guid id)
         {
-            _logger.LogInformation(AccountsLoggingForms.DeletionAttempt, id);
+            _logger.LogInformation(LogEventType.DeletionAttempt, id);
 
             await _accountsSvc.DeleteAsync(id);
 
-            _logger.LogInformation(AccountsLoggingForms.UserDeleted, id);
+            _logger.LogInformation(LogEventType.UserDeleted, id);
 
             return Ok();
         }
@@ -40,12 +40,12 @@ namespace AccountsService.Controllers
         [HttpGet("[action]")]
         public async Task<IActionResult> GetAllUsersAsync([FromQuery] PageParametersViewModel pageParams)
         {
-            _logger.LogInformation(AccountsLoggingForms.TryingToGetUsers);
+            _logger.LogInformation(LogEventType.TryingToGetUsers);
 
             var accounts = await _accountsSvc.GetAllAsync(pageParams);
             var accountsVM = _mapper.Map<PageViewModel<UserViewModel>>(accounts);
 
-            _logger.LogInformation(AccountsLoggingForms.GotUsers);
+            _logger.LogInformation(LogEventType.GotUsers);
 
             return Ok(accountsVM);
         }
@@ -55,7 +55,7 @@ namespace AccountsService.Controllers
         {
             await _accountsSvc.ChangeRoleAsync(userId, role);
 
-            _logger.LogInformation(AccountsLoggingForms.AddedToRole, userId, role);
+            _logger.LogInformation(LogEventType.AddedToRole, userId, role);
 
             return Ok();
         }

@@ -45,37 +45,18 @@ namespace AccountsService.Controllers
             _logger = logger;
             _jwtConfig = jwtConfig;
             _signInManager = signInManager;
-        }
-
-        // Temporaly has been moved from the AdminController in case of testing
-        // Will be moved back in the end
-        // todo: add prettier binding from the url for logsParams
-        //[Authorize(Policy = AccountsPolicies.DefaultRights, AuthenticationSchemes = "Identity.Application,Bearer")]
-        [AllowAnonymous]
-        [HttpGet("[action]")]
-        public async Task<IActionResult> GetAllLogsAsync([FromQuery] LogsParametersViewModel logsParams, [FromQuery] PageParametersViewModel pageParams)
-        {
-            _logger.LogInformation(LoggingForms.LogsRetrievingAttempt, _userId, _userEmail);
-
-            var result = await _accountsSvc.GetAllLogsAsync(logsParams, pageParams);
-            
-            var model = _mapper.Map<PageViewModel<LoggingRecordViewModel>>(result);
-
-            _logger.LogInformation(LoggingForms.LogsRetrieved, _userId, _userEmail);
-
-            return Ok(model);
-        }
+        }        
 
         [AllowAnonymous]
         [HttpPost("[action]")]
         public async Task<IActionResult> RegisterAsync([FromBody] RegistrationViewModel viewModel)
         {
-            _logger.LogInformation(AccountsLoggingForms.RegistrationAttempt, viewModel.UserName, viewModel.Email);
+            _logger.LogInformation(LogEventType.RegistrationAttempt, viewModel.UserName, viewModel.Email);
 
             var user = _mapper.Map<User>(viewModel);
             await _accountsSvc.RegisterAsync(user, viewModel.Password);
 
-            _logger.LogInformation(AccountsLoggingForms.Registred, user.UserName, user.Email);
+            _logger.LogInformation(LogEventType.Registred, user.UserName, user.Email);
 
             return Ok();
         }
@@ -84,11 +65,11 @@ namespace AccountsService.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> LoginAsync([FromBody] LoginViewModel viewModel)
         {
-            _logger.LogInformation(AccountsLoggingForms.LoginAttempt, viewModel.Email);
+            _logger.LogInformation(LogEventType.LoginAttempt, viewModel.Email);
 
             var token = await _accountsSvc.LoginAsync(viewModel.Email, viewModel.Password, _jwtConfig);
 
-            _logger.LogInformation(AccountsLoggingForms.LoggedIn, viewModel.Email);
+            _logger.LogInformation(LogEventType.LoggedIn, viewModel.Email);
 
             return Ok(token);
         }
@@ -97,14 +78,14 @@ namespace AccountsService.Controllers
         [HttpDelete("[action]")]
         public async Task<IActionResult> DeleteAsync()
         {
-            _logger.LogInformation(AccountsLoggingForms.DeletionAttempt, _userId);
+            _logger.LogInformation(LogEventType.DeletionAttempt, _userId);
 
             await _accountsSvc.DeleteAsync(Guid.Parse(_userId));
 
             if (User?.Identity?.AuthenticationType != "Bearer")
                 await LogoutGoogleAsync();
 
-            _logger.LogInformation(AccountsLoggingForms.UserDeleted, _userId);
+            _logger.LogInformation(LogEventType.UserDeleted, _userId);
 
             return Ok();
         }
@@ -124,7 +105,7 @@ namespace AccountsService.Controllers
         {
             await _signInManager.SignOutAsync();
 
-            _logger.LogInformation(AccountsLoggingForms.GoogleLogout, _userId, _userEmail);            
+            _logger.LogInformation(LogEventType.GoogleLogout, _userId, _userEmail);            
 
             return Ok();
         }
@@ -138,7 +119,7 @@ namespace AccountsService.Controllers
             var googleId = loginInfo.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
             var email = loginInfo.Principal.FindFirstValue(ClaimTypes.Email);
 
-            _logger.LogInformation(AccountsLoggingForms.GoogleAuthPassed, googleId, email);
+            _logger.LogInformation(LogEventType.GoogleAuthPassed, googleId, email);
 
             var signInResult = await _signInManager.ExternalLoginSignInAsync(loginInfo.LoginProvider, loginInfo.ProviderKey, isPersistent: false);
 
@@ -151,7 +132,7 @@ namespace AccountsService.Controllers
                 await _signInManager.SignInAsync(user, isPersistent: false);
             }
             
-            _logger.LogInformation(AccountsLoggingForms.GoogleLoggedIn, _userId, email);
+            _logger.LogInformation(LogEventType.GoogleLoggedIn, _userId, email);
 
             return Ok();
         }

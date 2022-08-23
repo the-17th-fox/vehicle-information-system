@@ -1,9 +1,9 @@
-﻿using AccountsService.Utilities;
-using Common.CustomExceptions;
+﻿using Common.CustomExceptions;
+using LogsViewerService.Constants.Logger;
 using System.Net;
 using System.Text.Json;
 
-namespace AccountsService.Exceptions
+namespace LogsViewerService.Exceptions
 {
     internal class GlobalExceptionsHandler
     {

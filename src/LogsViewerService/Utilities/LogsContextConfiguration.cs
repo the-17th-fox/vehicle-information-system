@@ -1,4 +1,4 @@
-﻿namespace AccountsService.Infrastructure
+﻿namespace LogsViewerService.Infrastructure
 {
     public class LogsContextConfiguration
     {

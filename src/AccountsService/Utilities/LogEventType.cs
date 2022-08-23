@@ -2,7 +2,7 @@
 
 namespace AccountsService.Utilities
 {
-    public class AccountsLoggingForms : CommonLoggingForms
+    internal class LogEventType : CommonLoggingForms
     {
         public const string RegistrationAttempt = "The user [{username}]:[{email}] is trying to register";
         public const string Registred = "The user [{username}]:[{email}] was successfully registred";

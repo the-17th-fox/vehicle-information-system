@@ -1,7 +1,7 @@
-﻿using AccountsService.ViewModels.ErrorMessages;
+﻿using Common.ViewModels.ErrorMessages;
 using System.ComponentModel.DataAnnotations;
 
-namespace AccountsService.ViewModels
+namespace LogsViewerService.ViewModels
 {
     /// <summary>
     /// Used for requesting a list of logs from the db using the params below
