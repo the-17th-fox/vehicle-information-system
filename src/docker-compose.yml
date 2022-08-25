@@ -26,7 +26,9 @@ services:
       - vis
 
   accounts:
-    build: AccountsService/
+    build:
+      context: .
+      dockerfile: accounts.Dockerfile
     ports:
       - "9999:9999"
     environment:
@@ -39,6 +41,25 @@ services:
       - vis
     depends_on:
       - accounts-db
+      - logs
+      
+  logs-viewer:
+    build:
+      context: .
+      dockerfile: logs-viewer.Dockerfile
+    ports:
+      - "9998:9998"
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:9998/
+      Serilog__WriteTo__1__Name: "MongoDB"
+      Serilog__WriteTo__1__Args__databaseUrl: "mongodb://logs:27017/logs"
+      Serilog__WriteTo__1__Args__collectionName: "logs"
+      MongoDbContext__LogsCollection__ConnectionString: "mongodb://logs:27017/logs"
+      MongoDbContext__LogsCollection__CollectionName: "logs"
+    networks:
+      - vis
+    depends_on:
+      - accounts
       - logs
 
 networks:

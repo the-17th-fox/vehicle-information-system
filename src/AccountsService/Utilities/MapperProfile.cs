@@ -6,7 +6,7 @@ using Common.ViewModels;
 
 namespace AccountsService.Utilities
 {
-    public class MapperProfile : Profile
+    internal class MapperProfile : Profile
     {
         public MapperProfile()
         {
