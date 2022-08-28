@@ -1,15 +1,11 @@
-﻿using AccountsService.Utilities;
+﻿using System.Collections.Generic;
+using AccountsService.Utilities;
 using Common.Constants.Auth;
 using Common.Models.AccountsService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace AccountsServiceTests.TestingData
+namespace AccountsServiceTests
 {
     internal class SampleData
     {

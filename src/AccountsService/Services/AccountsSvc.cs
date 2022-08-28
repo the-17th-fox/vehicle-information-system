@@ -3,17 +3,15 @@ using AccountsService.Utilities;
 using Common.Constants.Auth;
 using Common.CustomExceptions;
 using Common.Models.AccountsService;
-using Common.Utilities.Pagination;
 using Common.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using MongoDB.Driver;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using AccountsService.Infrastructure;
+using Common.Utilities;
 
 namespace AccountsService.Services
 {

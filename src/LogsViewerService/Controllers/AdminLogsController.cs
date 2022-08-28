@@ -1,12 +1,11 @@
 ﻿using AutoMapper;
 using Common.ViewModels;
-using LogsViewerService.Constants.Logger;
 using LogsViewerService.Services;
 using LogsViewerService.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using LogsViewerService.Utilities;
 
 namespace LogsViewerService.Controllers
 {

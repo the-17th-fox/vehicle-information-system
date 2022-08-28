@@ -1,6 +1,4 @@
-﻿using AccountsServiceTests.Mocks;
-using AccountsServiceTests.TestingData;
-using Common.CustomExceptions;
+﻿using Common.CustomExceptions;
 using Common.Models.AccountsService;
 using Moq;
 using System;

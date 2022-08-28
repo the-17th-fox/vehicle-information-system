@@ -4,7 +4,6 @@ using AccountsService.ViewModels;
 using AutoMapper;
 using Common.Constants.Auth;
 using Common.ViewModels;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

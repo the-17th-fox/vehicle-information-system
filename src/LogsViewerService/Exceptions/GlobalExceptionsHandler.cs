@@ -1,7 +1,7 @@
 ﻿using Common.CustomExceptions;
-using LogsViewerService.Constants.Logger;
 using System.Net;
 using System.Text.Json;
+using LogsViewerService.Utilities;
 
 namespace LogsViewerService.Exceptions
 {

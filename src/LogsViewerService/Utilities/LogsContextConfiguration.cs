@@ -1,4 +1,4 @@
-﻿namespace LogsViewerService.Infrastructure
+﻿namespace LogsViewerService.Utilities
 {
     public class LogsContextConfiguration
     {

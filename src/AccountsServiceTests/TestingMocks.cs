@@ -1,19 +1,14 @@
-﻿using AccountsService.Infrastructure.Context;
+﻿using System;
+using AccountsService.Infrastructure.Context;
 using AccountsService.Services;
 using Common.Models.AccountsService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace AccountsServiceTests.Mocks
+namespace AccountsServiceTests
 {
     internal class TestingMocks
     {

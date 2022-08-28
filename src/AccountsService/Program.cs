@@ -10,12 +10,8 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using Serilog;
 using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication;
-using System.Security.Claims;
 using Common.Models.AccountsService;
-using Common.Utilities;
 using Common.Constants.Auth;
-using AccountsService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 

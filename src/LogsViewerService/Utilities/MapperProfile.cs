@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Common.Utilities.Pagination;
+using Common.Utilities;
 using Common.ViewModels;
 using LogsViewerService.Models;
 using LogsViewerService.ViewModels;
