@@ -1,6 +1,6 @@
-﻿using Common.Utilities.Pagination;
-using AccountsService.Utilities;
+﻿using AccountsService.Utilities;
 using Common.Models.AccountsService;
+using Common.Utilities;
 using Common.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;

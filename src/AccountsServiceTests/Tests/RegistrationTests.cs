@@ -1,5 +1,3 @@
-using AccountsServiceTests.Mocks;
-using AccountsServiceTests.TestingData;
 using Common.CustomExceptions;
 using Common.Models.AccountsService;
 using Microsoft.AspNetCore.Identity;

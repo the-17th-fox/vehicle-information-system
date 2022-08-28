@@ -1,6 +1,6 @@
 ﻿using Common.Constants.Logger;
 
-namespace LogsViewerService.Constants.Logger
+namespace LogsViewerService.Utilities
 {
     internal class LogEventType : CommonLoggingForms
     {

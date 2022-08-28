@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 
-namespace Common.Utilities.Pagination
+namespace Common.Utilities
 {
     public class PagedList<T> : List<T>
     {

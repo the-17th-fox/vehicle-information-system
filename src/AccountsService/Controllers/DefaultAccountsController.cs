@@ -6,9 +6,7 @@ using Common.Constants.Auth;
 using Common.Models.AccountsService;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -56,7 +54,7 @@ namespace AccountsService.Controllers
             var user = _mapper.Map<User>(viewModel);
             await _accountsSvc.RegisterAsync(user, viewModel.Password);
 
-            _logger.LogInformation(LogEventType.Registred, user.UserName, user.Email);
+            _logger.LogInformation(LogEventType.Registered, user.UserName, user.Email);
 
             return Ok();
         }

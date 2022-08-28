@@ -1,5 +1,5 @@
-﻿using LogsViewerService.Models;
-using Common.Utilities.Pagination;
+﻿using Common.Utilities;
+using LogsViewerService.Models;
 using Common.ViewModels;
 using LogsViewerService.ViewModels;
 

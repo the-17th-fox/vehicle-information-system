@@ -1,7 +1,7 @@
 ﻿using AccountsService.ViewModels;
 using AutoMapper;
 using Common.Models.AccountsService;
-using Common.Utilities.Pagination;
+using Common.Utilities;
 using Common.ViewModels;
 
 namespace AccountsService.Utilities

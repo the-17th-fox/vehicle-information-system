@@ -1,10 +1,9 @@
-﻿using LogsViewerService.Infrastructure;
-using Common.CustomExceptions;
-using Common.Utilities.Pagination;
+﻿using Common.CustomExceptions;
+using Common.Utilities;
 using Common.ViewModels;
-using LogsViewerService.Constants.Logger;
 using LogsViewerService.Infrastructure.Context;
 using LogsViewerService.Models;
+using LogsViewerService.Utilities;
 using LogsViewerService.ViewModels;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
