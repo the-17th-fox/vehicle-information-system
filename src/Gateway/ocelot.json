@@ -1,0 +1,47 @@
+{
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:7272"
+  },
+  "Routes": [
+    {
+      "UpstreamPathTemplate": "/api/account/Login",
+      "UpstreamHttpMethod": ["Post"],
+      "DownstreamPathTemplate": "/api/account/Login",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{
+        "Host": "localhost",
+        "Port": 7228
+      }]
+    },
+    {
+      "UpstreamPathTemplate": "/api/account/Register",
+      "UpstreamHttpMethod": ["Post"],
+      "DownstreamPathTemplate": "/api/account/Register",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{
+        "Host": "localhost",
+        "Port": 7228
+      }]
+    },
+    {
+      "UpstreamPathTemplate": "/api/account/Delete",
+      "UpstreamHttpMethod": ["Delete"],
+      "DownstreamPathTemplate": "/api/account/Delete",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{
+        "Host": "localhost",
+        "Port": 7228
+      }]
+    },
+    {
+      "UpstreamPathTemplate": "/api/logs/GetAll",
+      "UpstreamHttpMethod": ["Get"],
+      "DownstreamPathTemplate": "/api/account/GetAll",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [{
+        "Host": "localhost",
+        "Port": 7295
+      }]
+    }
+  ]
+}
