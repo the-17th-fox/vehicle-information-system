@@ -1,6 +1,6 @@
 ﻿namespace VehiclesSearchService.ViewModels
 {
-    public class ManufacturerSearchViewModel
+    public class MfrSearchViewModel
     {
         public int? MfrId { get; set; } = null;
         public string MfrName { get; set; } = string.Empty;
