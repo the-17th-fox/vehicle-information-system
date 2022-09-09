@@ -5,6 +5,6 @@ namespace VehiclesSearchService.Services
 {
     public interface IVehiclesSearchSvc
     {
-        public List<Manufacturer> ProvideManufacturersCheckout(string response, ManufacturerSearchViewModel searchCriteria);
+        public List<DetailedManufacturer> GetFilteredMfrs(string response, MfrSearchViewModel searchCriteria);
     }
 }
