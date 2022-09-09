@@ -29,14 +29,14 @@ namespace VehiclesSearchService.Controllers
     [ApiController]
     public class ManufacturersController : ControllerBase
     {
-        private readonly ILogger<VehiclesController> _logger;
+        private readonly ILogger<ManufacturersController> _logger;
         private readonly HttpClient _httpClient;
         private IOptions<NhtsaApiConfig> _nhtsaApiConfig;
         private readonly IVehiclesSearchSvc _searchSvc;
         private string _responseFormat = @"?format=json";
 
         public ManufacturersController(
-            ILogger<VehiclesController> logger,
+            ILogger<ManufacturersController> logger,
             IOptions<NhtsaApiConfig> nhtsaApiConfig,
             IVehiclesSearchSvc searchSvc)
         {
