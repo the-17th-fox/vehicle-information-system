@@ -29,8 +29,8 @@ services:
     build:
       context: .
       dockerfile: accounts.Dockerfile
-    ports:
-      - "9999:9999"
+    # ports:
+    #   - "9999:9999"
     environment:
       ConnectionStrings__DatabaseConnection: "Server=accounts-db,9823;Database=AccountsDb;User Id=sa;Password=Password1"
       ASPNETCORE_URLS: http://0.0.0.0:9999/
@@ -47,8 +47,8 @@ services:
     build:
       context: .
       dockerfile: logs-viewer.Dockerfile
-    ports:
-      - "9998:9998"
+    # ports:
+    #   - "9998:9998"
     environment:
       ASPNETCORE_URLS: http://0.0.0.0:9998/
       Serilog__WriteTo__1__Name: "MongoDB"
@@ -61,6 +61,20 @@ services:
     depends_on:
       - accounts
       - logs
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway.Dockerfile
+    ports:
+      - "9000:9000"
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:9000/
+    networks:
+      - vis
+    depends_on:
+      - accounts
+      - logs-viewer
 
 networks:
   vis:
