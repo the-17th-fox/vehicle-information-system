@@ -5,7 +5,7 @@ using VehiclesSearchService.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<IVehiclesSearchSvc, VehiclesSearchSvc>();
+builder.Services.AddScoped<IManufacturersSearchSvc, ManufacturersSearchSvc>();
 builder.Services.Configure<NhtsaApiConfig>(builder.Configuration.GetSection("NHTSA"));
 
 builder.Services.AddControllers();

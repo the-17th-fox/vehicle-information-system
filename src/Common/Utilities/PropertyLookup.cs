@@ -14,8 +14,17 @@ namespace Common.Utilities
             return obj.GetType()
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
                 .Where(p => p.CanRead)
-                .Select(p => new { Property = p, Value = p.GetValue(obj, null) })
-                .Where(a => a.Value != null && !string.IsNullOrEmpty(a?.Value?.ToString()))
+
+                    .Select(p => new 
+                    { 
+                        Property = p, 
+                        Value = p.GetValue(obj, null) 
+                    })
+
+                    .Where(a => 
+                        a.Value != null && 
+                        !string.IsNullOrEmpty(a?.Value?.ToString()))
+
                 .Select(a => a.Property);
         }
     }

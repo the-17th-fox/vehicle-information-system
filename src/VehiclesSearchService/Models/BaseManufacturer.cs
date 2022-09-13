@@ -15,6 +15,6 @@ namespace VehiclesSearchService.Models
         public string MfrCommonName { get; set; } = string.Empty;
 
         public string Country { get; set; } = string.Empty;
-        public List<BaseVehicleType> VehicleTypes { get; set; } = new();
+        public virtual List<BaseVehicleType> VehicleTypes { get; set; } = new();
     }
 }
