@@ -4,37 +4,23 @@ using System.Text.Json.Serialization;
 namespace VehiclesSearchService.Models
 {
     // Used for JSON deserialization
-    public class MfrDetailsResponse<TManufacturerType, TVehicleType> 
+    public class MfrDetailsResponse<TManufacturerType> 
         where TManufacturerType : BaseManufacturer
-        where TVehicleType : BaseVehicleType
     {
-        public int Count { get; set; }
-        public string Message { get; set; } = string.Empty;
-        public string SearchCriteria { get; set; } = string.Empty;
         public List<TManufacturerType> Results { get; set; } = new();
 
-        public static bool TryParseResponse(string response, out MfrDetailsResponse<TManufacturerType, TVehicleType>? result)
+        public static bool TryDeserializeResponse(string response, out List<TManufacturerType>? result)
         {
             var options = new JsonSerializerSettings
             {
                 NullValueHandling = NullValueHandling.Ignore,
             };
 
-            result = JsonConvert.DeserializeObject<MfrDetailsResponse<TManufacturerType, TVehicleType>>(response, options);
+            var deserializedResp = JsonConvert.DeserializeObject<MfrDetailsResponse<TManufacturerType>>(response, options);
+
+            result = deserializedResp.Results;
 
             return result is not null ? true : false;
-        }
-
-        public static MfrDetailsResponse<TManufacturerType, TVehicleType>? TryParseResponse(string response)
-        {
-            var options = new JsonSerializerSettings
-            {
-                NullValueHandling = NullValueHandling.Ignore,
-            };
-
-            var result = JsonConvert.DeserializeObject<MfrDetailsResponse<TManufacturerType, TVehicleType>>(response, options);
-
-            return result;
         }
     }
 

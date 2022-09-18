@@ -1,5 +1,5 @@
 ﻿using Common.CustomExceptions;
-using Common.Utilities;
+using Common.Extensions;
 using Common.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -35,7 +35,7 @@ namespace VehiclesSearchService.Controllers
             ILogger<ManufacturersController> logger,
             IManufacturersSearchSvc searchSvc)
         {
-            _logger = logger;            
+            _logger = logger;
             _searchSvc = searchSvc;
         }
 
@@ -44,10 +44,10 @@ namespace VehiclesSearchService.Controllers
         {
             _logger.LogInformation(LogEventType.MfrsInfoRequest, searchCriteria.FilledPropertiesValues());
 
-            var mfrs = await _searchSvc.GetDetailedMfrsAsync(searchCriteria);
+            var manufacturers = await _searchSvc.GetDetailedMfrsAsync(searchCriteria);
 
             _logger.LogInformation(LogEventType.MfrsInfoRequestSucceded, searchCriteria.FilledPropertiesValues());
-            return Ok(mfrs);
+            return Ok(manufacturers);
         }
     }
 }

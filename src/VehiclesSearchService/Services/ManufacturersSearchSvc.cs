@@ -1,11 +1,15 @@
 ﻿using Common.CustomExceptions;
-using Common.Utilities;
+using Common.Extensions;
 using Common.ViewModels;
 using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 using Newtonsoft.Json;
+using System;
+using System.ComponentModel;
 using System.Net.Http.Headers;
 using System.Reflection;
 using VehiclesSearchService.Controllers;
+using VehiclesSearchService.Infrastructure;
 using VehiclesSearchService.Models;
 using VehiclesSearchService.Utilities;
 using VehiclesSearchService.ViewModels;
@@ -17,8 +21,13 @@ namespace VehiclesSearchService.Services
         private readonly HttpClient _httpClient;
         private IOptions<NhtsaApiConfig> _nhtsaApiConfig;
         private readonly ILogger<ManufacturersSearchSvc> _logger;
+        private readonly ICacheRepository _cacheRep;
+        private readonly IOptions<RedisCacheConfig> _cacheConfig;
 
-        public ManufacturersSearchSvc(IOptions<NhtsaApiConfig> nhtsaApiConfig, ILogger<ManufacturersSearchSvc> logger)
+        public ManufacturersSearchSvc(IOptions<NhtsaApiConfig> nhtsaApiConfig, 
+            ILogger<ManufacturersSearchSvc> logger,
+            ICacheRepository cacheRep,
+            IOptions<RedisCacheConfig> cacheConfig)
         {
             _nhtsaApiConfig = nhtsaApiConfig;
 
@@ -27,69 +36,47 @@ namespace VehiclesSearchService.Services
             _httpClient.BaseAddress = new Uri($@"{_nhtsaApiConfig.Value.ApiUrl}/");
 
             _logger = logger;
+
+            _cacheRep = cacheRep;
+            _cacheConfig = cacheConfig;
         }
 
         public async Task<List<DetailedManufacturer>> GetDetailedMfrsAsync(MfrSearchViewModel searchCriteria)
         {
-            var appropriateProp = GetFirstAppropriateProperty(searchCriteria);
-            List<DetailedManufacturer>? mfrs;
+            var cacheKeyName = $"Mfr/FastSearch:{searchCriteria.FilledPropertiesValues()}";
+            List<DetailedManufacturer>? manufacturers;
+
+            _logger.LogInformation(LogEventType.CacheRequested, cacheKeyName);
+            manufacturers = await TryGetFromCacheAsync<DetailedManufacturer>(cacheKeyName);
+            if (manufacturers is not null && manufacturers.Count > 0)
+            {
+                _logger.LogInformation(LogEventType.CacheRetrieved, cacheKeyName);
+                return manufacturers;
+            }
+            _logger.LogInformation(LogEventType.CacheNotFound, cacheKeyName);
+
+            var appropriateProp = SearchHelper.GetFirstAppropriateProperty(searchCriteria);
 
             switch (appropriateProp)
             {
                 case nameof(MfrSearchViewModel.MfrName):
-                    mfrs = await GetByIdentifiersAsync(searchCriteria.MfrName, searchCriteria); break;
+                    manufacturers = await GetByIdentifierAsync(searchCriteria.MfrName, searchCriteria); break;
 
                 case nameof(MfrSearchViewModel.MfrId):
-                    mfrs = await GetByIdentifiersAsync(searchCriteria!.MfrId!.ToString()!, searchCriteria); break;
+                    manufacturers = await GetByIdentifierAsync(searchCriteria!.MfrId!.ToString()!, searchCriteria); break;
 
                 case nameof(MfrSearchViewModel.Country):
                 case nameof(MfrSearchViewModel.City):
                 case nameof(MfrSearchViewModel.State):
-                    mfrs = await GetBySecondaryCreteriasAsync(searchCriteria); break;
+                    manufacturers = await GetBySecondaryCreteriasAsync(searchCriteria); break;
 
                 default:
                     throw new Exception(LogEventType.MfrsInfoRequestFailed.Replace("params", searchCriteria.AllPropertiesValues()));
             }
 
-            return mfrs;
-        }
-
-        /// <summary>
-        /// Searchs for the first non-empty/non-null property
-        /// </summary>
-        /// <param name="searchCriteria"></param>
-        /// <returns>First filled property of provided model</returns>
-        private static string GetFirstAppropriateProperty(MfrSearchViewModel searchCriteria)
-        {
-            var filledProperties = PropertyLookup.GetFilledProperties(searchCriteria);
-
-            if (!filledProperties.Any())
-                throw new InvalidParamsException(LogEventType.ParameterMissed.Replace("argument", searchCriteria.AllPropertiesValues()));
-
-            var containsNameOrId = filledProperties.Where(p =>
-                (p.Name == nameof(MfrSearchViewModel.MfrName) ||
-                p.Name == nameof(MfrSearchViewModel.MfrId)));
-
-            // At first we're looking for MfrId or MfrName, because searching using these params are more efficient
-            if (containsNameOrId.Any())
-                return containsNameOrId.First().Name;
-
-            foreach (var prop in filledProperties)
-            {
-                switch (prop.Name)
-                {
-                    case nameof(MfrSearchViewModel.Country):
-                        return nameof(MfrSearchViewModel.Country);
-
-                    case nameof(MfrSearchViewModel.City):
-                        return nameof(MfrSearchViewModel.City);
-
-                    default:
-                        break;
-                }
-            }
-
-            return string.Empty;
+            await UpdateCacheAsync<DetailedManufacturer>(manufacturers, cacheKeyName, _cacheConfig.Value.CacheExpirationHours);
+            _logger.LogInformation(LogEventType.CacheUpdated, cacheKeyName);
+            return manufacturers;
         }
 
         // Filtration methods section below
@@ -128,15 +115,8 @@ namespace VehiclesSearchService.Services
             return manufacturers.Count != 0 ? true : false;
         }
 
-        private static List<DetailedManufacturer> GetFilteredMfrs(string response, MfrSearchViewModel searchCriteria)
+        private static List<DetailedManufacturer> GetFilteredMfrs(List<DetailedManufacturer> manufacturers, MfrSearchViewModel searchCriteria)
         {
-            MfrDetailsResponse<DetailedManufacturer, DetailedVehicleType>? parsedResponse;
-
-            if (!MfrDetailsResponse<DetailedManufacturer, DetailedVehicleType>.TryParseResponse(response, out parsedResponse))
-                throw new Exception();
-
-            var manufacturers = parsedResponse!.Results;
-
             if (!FilterByMfrName(manufacturers, searchCriteria.MfrName))
                 return manufacturers;
 
@@ -152,59 +132,113 @@ namespace VehiclesSearchService.Services
             return manufacturers;
         }
         // End of filtration methods section
-        
-        private async IAsyncEnumerable<List<BaseManufacturer>> QueueAllMfrsAsync(string uri)
-        {
-            int counter = 1;
-            bool isLastEmpty = false;
-            do
-            {
-                string response = await GetResponseAsync($"{uri}&page={counter++}");
-
-                var newMfrs = MfrDetailsResponse<BaseManufacturer, BaseVehicleType>.TryParseResponse(response)?.Results;
-
-                if (newMfrs is null || newMfrs.Count == 0)
-                    isLastEmpty = true;
-                else
-                    yield return newMfrs;
-
-            } while (!isLastEmpty);
-        }
 
         // Request methods section below
-        private async Task<string> GetResponseAsync(string path)
+        private async Task<string> GetResponseAsync(string path, string cacheKeyName)
         {
-            var response = await _httpClient.GetAsync(path);
+            string response = string.Empty;
 
-            return await response.Content.ReadAsStringAsync();
+            _logger.LogInformation(LogEventType.CacheRequested, cacheKeyName);
+            response = await _cacheRep.GetAsync(cacheKeyName);
+            if(string.IsNullOrWhiteSpace(response))
+            {
+                _logger.LogInformation(LogEventType.CacheNotFound, cacheKeyName);
+
+                var getTask = await _httpClient.GetAsync(path);
+                response = await getTask.Content.ReadAsStringAsync();
+                await _cacheRep.UpdateCacheAsync(cacheKeyName, response, _cacheConfig.Value.CacheExpirationHours);
+
+                _logger.LogInformation(LogEventType.CacheUpdated, cacheKeyName);
+            }
+            _logger.LogInformation(LogEventType.CacheRetrieved, cacheKeyName);
+
+            return response;
         }
 
-        private async Task<List<DetailedManufacturer>> GetByIdentifiersAsync(string identifier, MfrSearchViewModel searchCreteria)
+        private async Task<List<DetailedManufacturer>> GetByIdentifierAsync(string identifier, MfrSearchViewModel searchCreteria)
         {
             string uri = $@"GetManufacturerDetails/{identifier}{_nhtsaApiConfig.Value.RequestPathFormating}";
-            var response = await GetResponseAsync(uri);
+            string cacheKeyName = $"Mfr/GetByIdentifier:{identifier}";
 
-            var filteredResult = GetFilteredMfrs(response, searchCreteria);
+            string response = await GetResponseAsync(uri, cacheKeyName);
+
+            List<DetailedManufacturer>? manufacturers;
+            MfrDetailsResponse<DetailedManufacturer>.TryDeserializeResponse(response, out manufacturers);
+
+            var filteredResult = GetFilteredMfrs(manufacturers ??= new(), searchCreteria);
 
             return filteredResult;
         }
 
         private async Task<List<DetailedManufacturer>> GetBySecondaryCreteriasAsync(MfrSearchViewModel searchCreteria)
         {
-            string uri = $@"GetAllManufacturers{_nhtsaApiConfig.Value.RequestPathFormating}";
+            List<DetailedManufacturer> filteredResult = new();
+            var pagedMfrs = QueueAllMfrsAsync();
 
-            List<DetailedManufacturer> filteredManufacturers = new();
-
-            await foreach (var mfrs in QueueAllMfrsAsync(uri))
+            await foreach (var mfrs in pagedMfrs)
             foreach (var mfr in mfrs)
             {
-                var newFilteredMfrs = await GetByIdentifiersAsync(mfr.MfrId.ToString(), searchCreteria);
+                var newFilteredMfrs = await GetByIdentifierAsync(mfr.MfrId.ToString(), searchCreteria);
                 if (newFilteredMfrs.Any())
-                    filteredManufacturers.AddRange(newFilteredMfrs);
+                    filteredResult.AddRange(newFilteredMfrs);
             }
 
-            return filteredManufacturers;
+            return filteredResult;
+        }
+
+        private async IAsyncEnumerable<List<BaseManufacturer>> QueueAllMfrsAsync()
+        {
+            bool isLastEmpty = false;
+            int page = 1;
+            string cacheKeyName = $"Mfr/GetPage:{page}";
+            string uri = $@"GetAllManufacturers{_nhtsaApiConfig.Value.RequestPathFormating}&page={page++}";
+            var newMfrs = new List<BaseManufacturer>();
+
+            do
+            {
+                string response = await GetResponseAsync(uri, cacheKeyName);
+                MfrDetailsResponse<BaseManufacturer>.TryDeserializeResponse(response, out newMfrs);
+
+                if(newMfrs!.Count > 0)
+                {
+                    yield return newMfrs;
+                }
+
+                isLastEmpty = true;
+            } 
+            while (!isLastEmpty);
         }
         // End of request methods section 
+
+        public async Task<List<TManufacturerType>> TryGetFromCacheAsync<TManufacturerType>(string cacheKeyName)
+            where TManufacturerType : BaseManufacturer
+        {
+            List<TManufacturerType> mfrs = new();
+
+            string response = await _cacheRep.GetAsync(cacheKeyName);
+            _logger.LogInformation(LogEventType.CacheRequested, cacheKeyName);
+            if (string.IsNullOrWhiteSpace(response))
+            {
+                _logger.LogInformation(LogEventType.CacheNotFound, cacheKeyName);
+                return mfrs;
+            }
+            _logger.LogInformation(LogEventType.CacheRetrieved, cacheKeyName);
+
+            if (!SearchHelper.TryDeserializeMfrs<TManufacturerType>(response, out mfrs!))
+                throw new Exception();
+
+            return mfrs;
+        }
+
+        public async Task UpdateCacheAsync<TManufacturerType>(List<TManufacturerType> mfrs, string cacheKeyName, double expireAfter)
+            where TManufacturerType : BaseManufacturer
+        {
+            var json = string.Empty;
+            if (!SearchHelper.TrySerializeMfrs(mfrs, out json))
+                throw new Exception();
+
+            await _cacheRep.UpdateCacheAsync(cacheKeyName, json, _cacheConfig.Value.CacheExpirationHours);
+            _logger.LogInformation(LogEventType.CacheUpdated, cacheKeyName);
+        }
     }
 }

@@ -4,8 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Common.Utilities;
 
-namespace Common.Utilities
+namespace Common.Extensions
 {
     public static class ObjectExtension
     {
@@ -15,7 +16,7 @@ namespace Common.Utilities
             var sb = new StringBuilder();
 
             foreach (var prop in properties)
-                sb.Append($@"{prop.Name}: [{prop.GetValue(prop)}] ");
+                sb.Append($@"{prop.Name}: [{prop.GetValue(obj)}] ");
 
             return sb.ToString();
         }
@@ -26,7 +27,7 @@ namespace Common.Utilities
             var sb = new StringBuilder();
 
             foreach (var prop in properties)
-                sb.Append($@"{prop.Name}: [{prop.GetValue(prop)}] ");
+                sb.Append($@"{prop.Name}: [{prop.GetValue(obj, null)}] ");
 
             return sb.ToString();
         }
