@@ -40,7 +40,17 @@
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [{
         "Host": "localhost",
-        "Port": 7295
+        "Port": 7259
+      }]
+    },
+	{
+      "UpstreamPathTemplate": "api/search/manufacturers",
+      "UpstreamHttpMethod": ["Get"],
+      "DownstreamPathTemplate": "api/search/manufacturers",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{
+        "Host": "localhost",
+        "Port": 7100
       }]
     }
   ]

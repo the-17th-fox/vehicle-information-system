@@ -1,6 +1,7 @@
 {
   "GlobalConfiguration": {
-    "BaseUrl": "http://localhost:9000"
+    "BaseUrl": "http://localhost:9000",
+	"RequestIdKey": "X-Correlation-ID"
   },
   "Routes": [
     {
@@ -31,7 +32,11 @@
       "DownstreamHostAndPorts": [{
         "Host": "accounts",
         "Port": 9999
-      }]
+      }],
+	  "AuthenticationOptions": {
+		  "AuthenticationProviderKey": "Bearer",
+          "AllowedScopes": []
+	  }
     },
     {
       "UpstreamPathTemplate": "/api/account/LoginGoogle",
@@ -71,7 +76,11 @@
       "DownstreamHostAndPorts": [{
         "Host": "accounts",
         "Port": 9999
-      }]
+      }],
+	  "AuthenticationOptions": {
+		  "AuthenticationProviderKey": "Bearer",
+          "AllowedScopes": []
+	  }
     },
     {
       "UpstreamPathTemplate": "/api/users/GetAllUsers",
@@ -81,7 +90,11 @@
       "DownstreamHostAndPorts": [{
         "Host": "accounts",
         "Port": 9999
-      }]
+      }],
+	  "AuthenticationOptions": {
+		  "AuthenticationProviderKey": "Bearer",
+          "AllowedScopes": []
+	  }
     },
     {
       "UpstreamPathTemplate": "/api/users/ChangeRole",
@@ -91,7 +104,11 @@
       "DownstreamHostAndPorts": [{
         "Host": "accounts",
         "Port": 9999
-      }]
+      }],
+	  "AuthenticationOptions": {
+		  "AuthenticationProviderKey": "Bearer",
+          "AllowedScopes": []
+	  }
     },
     {
       "UpstreamPathTemplate": "/api/logs/GetAll",
@@ -101,7 +118,28 @@
       "DownstreamHostAndPorts": [{
         "Host": "logs-viewer",
         "Port": 9998
-      }]
+      }],
+	  "AuthenticationOptions": {
+		  "AuthenticationProviderKey": "Bearer",
+          "AllowedScopes": []
+	  }
+    },
+    {
+	  "DownstreamPathTemplate": "/api/search/manufacturers",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{
+        "Host": "veh-search",
+        "Port": 9997
+      }],
+      "UpstreamPathTemplate": "/api/search/manufacturers",
+      "UpstreamHttpMethod": ["Get"],
+	  "AuthenticationOptions": {
+		  "AuthenticationProviderKey": "Bearer",
+          "AllowedScopes": []
+	  },
+      "RouteClaimsRequirement:": {
+          "Role": "DefaultUser"
+      }
     }
   ]
 }

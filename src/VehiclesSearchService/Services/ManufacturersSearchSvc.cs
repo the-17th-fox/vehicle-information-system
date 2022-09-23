@@ -46,14 +46,12 @@ namespace VehiclesSearchService.Services
             var cacheKeyName = $"Mfr/FastSearch:{searchCriteria.FilledPropertiesValues()}";
             List<DetailedManufacturer>? manufacturers;
 
-            _logger.LogInformation(LogEventType.CacheRequested, cacheKeyName);
             manufacturers = await TryGetFromCacheAsync<DetailedManufacturer>(cacheKeyName);
             if (manufacturers is not null && manufacturers.Count > 0)
             {
                 _logger.LogInformation(LogEventType.CacheRetrieved, cacheKeyName);
                 return manufacturers;
             }
-            _logger.LogInformation(LogEventType.CacheNotFound, cacheKeyName);
 
             var appropriateProp = SearchHelper.GetFirstAppropriateProperty(searchCriteria);
 
@@ -75,7 +73,6 @@ namespace VehiclesSearchService.Services
             }
 
             await UpdateCacheAsync<DetailedManufacturer>(manufacturers, cacheKeyName, _cacheConfig.Value.CacheExpirationHours);
-            _logger.LogInformation(LogEventType.CacheUpdated, cacheKeyName);
             return manufacturers;
         }
 
@@ -138,20 +135,19 @@ namespace VehiclesSearchService.Services
         {
             string response = string.Empty;
 
-            _logger.LogInformation(LogEventType.CacheRequested, cacheKeyName);
             response = await _cacheRep.GetAsync(cacheKeyName);
-            if(string.IsNullOrWhiteSpace(response))
+            if(!string.IsNullOrWhiteSpace(response))
             {
-                _logger.LogInformation(LogEventType.CacheNotFound, cacheKeyName);
-
-                var getTask = await _httpClient.GetAsync(path);
-                response = await getTask.Content.ReadAsStringAsync();
-                await _cacheRep.UpdateCacheAsync(cacheKeyName, response, _cacheConfig.Value.CacheExpirationHours);
-
-                _logger.LogInformation(LogEventType.CacheUpdated, cacheKeyName);
+                _logger.LogInformation(LogEventType.CacheRetrieved, cacheKeyName);
+                return response;
             }
-            _logger.LogInformation(LogEventType.CacheRetrieved, cacheKeyName);
 
+            _logger.LogInformation(LogEventType.CacheNotFound, cacheKeyName);
+
+            var getTask = await _httpClient.GetAsync(path);
+            response = await getTask.Content.ReadAsStringAsync();
+            await _cacheRep.UpdateCacheAsync(cacheKeyName, response, _cacheConfig.Value.CacheExpirationHours);
+            
             return response;
         }
 
@@ -216,13 +212,12 @@ namespace VehiclesSearchService.Services
             List<TManufacturerType> mfrs = new();
 
             string response = await _cacheRep.GetAsync(cacheKeyName);
-            _logger.LogInformation(LogEventType.CacheRequested, cacheKeyName);
+            
             if (string.IsNullOrWhiteSpace(response))
             {
                 _logger.LogInformation(LogEventType.CacheNotFound, cacheKeyName);
                 return mfrs;
             }
-            _logger.LogInformation(LogEventType.CacheRetrieved, cacheKeyName);
 
             if (!SearchHelper.TryDeserializeMfrs<TManufacturerType>(response, out mfrs!))
                 throw new Exception();
@@ -238,7 +233,6 @@ namespace VehiclesSearchService.Services
                 throw new Exception();
 
             await _cacheRep.UpdateCacheAsync(cacheKeyName, json, _cacheConfig.Value.CacheExpirationHours);
-            _logger.LogInformation(LogEventType.CacheUpdated, cacheKeyName);
         }
     }
 }

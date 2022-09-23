@@ -13,5 +13,7 @@ namespace VehiclesSearchService.Utilities
         public const string CacheRetrieved = "Cache was retrieved successfully. Cache key name: [{cacheKeyName}]";
         public const string CacheUpdated = "Cache was updated successfully. Cache key name: [{cacheKeyName}]";
 
+        public const string CacheDbConnectionFailed = "Connection to the redis db was failed";
+
     }
 }

@@ -6,9 +6,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using LogsViewerService.Utilities;
+using Common.Constants.Auth;
 
 namespace LogsViewerService.Controllers
 {
+    [Authorize]
     [Route("api/logs")]
     [ApiController]
     public class AdminLogsController : ControllerBase
@@ -26,10 +28,8 @@ namespace LogsViewerService.Controllers
             _logsSvc = logsSvc;
         }
 
-        // Temporally AllowAnon
-        // todo: add prettier binding from the url for logsParams
-        //[Authorize(Policy = AccountsPolicies.DefaultRights, AuthenticationSchemes = "Identity.Application,Bearer")]
-        [AllowAnonymous]
+        // todo: add prettier binding from the url into the logsParams
+        [Authorize(Policy = AccountsPolicies.ElevatedRights, AuthenticationSchemes = "Identity.Application,Bearer")]
         [HttpGet("[action]")]
         public async Task<IActionResult> GetAllAsync([FromQuery] LogsParametersViewModel logsParams, [FromQuery] PageParametersViewModel pageParams)
         {

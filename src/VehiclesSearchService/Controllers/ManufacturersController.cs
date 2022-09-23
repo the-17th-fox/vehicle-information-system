@@ -1,6 +1,8 @@
-﻿using Common.CustomExceptions;
+﻿using Common.Constants.Auth;
+using Common.CustomExceptions;
 using Common.Extensions;
 using Common.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -17,13 +19,7 @@ using VehiclesSearchService.ViewModels;
 
 namespace VehiclesSearchService.Controllers
 {
-    /// <summary>
-    /// :: TODO :: 
-    /// - Add caching using Redis
-    /// - Add auth
-    /// - Add pagination
-    /// </summary>
-
+    [Authorize]
     [Route("api/search/manufacturers")]
     [ApiController]
     public class ManufacturersController : ControllerBase
@@ -39,6 +35,7 @@ namespace VehiclesSearchService.Controllers
             _searchSvc = searchSvc;
         }
 
+        [Authorize(Policy = AccountsPolicies.DefaultRights)]
         [HttpGet]
         public async Task<IActionResult> GetManufacturersInfoAsync([FromQuery] MfrSearchViewModel searchCriteria)
         {
