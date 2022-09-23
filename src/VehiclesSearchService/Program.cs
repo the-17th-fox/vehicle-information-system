@@ -1,4 +1,7 @@
-using Microsoft.Extensions.Caching.Distributed;
+using Common.Constants.Auth;
+using Common.Extensions;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Serilog;
 using StackExchange.Redis;
 using VehiclesSearchService.Exceptions;
@@ -13,9 +16,34 @@ builder.Services.AddScoped<IManufacturersSearchSvc, ManufacturersSearchSvc>();
 builder.Services.Configure<NhtsaApiConfig>(builder.Configuration.GetSection("NHTSA"));
 
 builder.Services.Configure<RedisCacheConfig>(config.GetSection("DistributedCache").GetSection("Redis"));
-builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(
-    config.GetSection("DistributedCache").GetConnectionString("Redis")));
+builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(config["DistributedCache:Redis:ConnectionString"]));
 builder.Services.AddScoped<ICacheRepository, CacheRepository>();
+
+// AUTH SECTION BELOW
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opt => opt.SetPredefined(
+        issuer: config["Authentication:Jwt:Issuer"],
+        audience: config["Authentication:Jwt:Audience"],
+        signingKey: config["Authentication:Jwt:Key"]))
+
+    .AddGoogle(GoogleDefaults.AuthenticationScheme, opt => opt.SetPredefined(
+        clientId: config["Authentication:Google:ClientId"],
+        clientSecret: config["Authentication:Google:ClientSecret"]));
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AccountsPolicies.DefaultRights, policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole(AccountsRoles.DefaultUser, AccountsRoles.Administrator);
+    });
+});
+// AUTH SECTION ABOVE
 
 builder.Services.AddControllers();
 
@@ -35,8 +63,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseMiddleware<GlobalExceptionsHandler>();

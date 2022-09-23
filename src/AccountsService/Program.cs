@@ -5,26 +5,26 @@ using AccountsService.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System.Text;
 using Serilog;
 using Microsoft.AspNetCore.Authentication.Google;
 using Common.Models.AccountsService;
 using Common.Constants.Auth;
+using Common.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+var config = builder.Configuration;
 
 //Database
 builder.Services.AddDbContext<AccountsServiceContext>(opt =>
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("DatabaseConnection")));
+    opt.UseSqlServer(config.GetConnectionString("DatabaseConnection")));
 
 //Services
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 builder.Services.AddScoped<IAccountsSvc, AccountsSvc>();
 
 //Auth section
-builder.Services.Configure<JwtConfigurationModel>(builder.Configuration.GetSection("Authentication").GetSection("Jwt"));
+builder.Services.Configure<JwtConfigurationModel>(config.GetSection("Authentication").GetSection("Jwt"));
 
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
 {
@@ -36,41 +36,34 @@ builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
     options.User.RequireUniqueEmail = true;
 }).AddEntityFrameworkStores<AccountsServiceContext>();
 
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-    .AddJwtBearer(opt =>
-    {
-        opt.SaveToken = true;
-        opt.TokenValidationParameters = new()
-        {
-            ValidateAudience = true,
-            ValidateIssuer = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Authentication:Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Authentication:Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Authentication:Jwt:Key"]))
-        };
-    })
-    .AddGoogle(GoogleDefaults.AuthenticationScheme, opt =>
-    {
-        opt.ClientId = builder.Configuration["Authentication:GoogleAuth:ClientId"];
-        opt.ClientSecret = builder.Configuration["Authentication:GoogleAuth:ClientSecret"];
-        opt.SaveTokens = true;
-    });
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opt => opt.SetPredefined(
+        issuer: config["Authentication:Jwt:Issuer"],
+        audience: config["Authentication:Jwt:Audience"],
+        signingKey: config["Authentication:Jwt:Key"]))
+
+    .AddGoogle(GoogleDefaults.AuthenticationScheme, opt => opt.SetPredefined(
+        clientId: config["Authentication:Google:ClientId"], 
+        clientSecret: config["Authentication:Google:ClientSecret"]));
 
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(AccountsPolicies.DefaultRights, policy =>
-        policy.RequireRole(AccountsRoles.DefaultUser, AccountsRoles.Administrator));
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole(AccountsRoles.DefaultUser, AccountsRoles.Administrator);
+    });
 
     options.AddPolicy(AccountsPolicies.ElevatedRights, policy =>
-        policy.RequireRole(AccountsRoles.Administrator));
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireRole(AccountsRoles.Administrator);
+    });
 });
 //End of auth section
 
