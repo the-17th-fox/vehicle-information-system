@@ -1,19 +1,23 @@
-using LogsViewerService.Exceptions;
-using LogsViewerService.Services;
-using LogsViewerService.Utilities;
-using Serilog;
 using Common.Constants.Auth;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Common.Extensions;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Serilog;
+using StackExchange.Redis;
+using VehiclesSearchService.Exceptions;
+using VehiclesSearchService.Infrastructure;
+using VehiclesSearchService.Services;
+using VehiclesSearchService.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
-//Services
-builder.Services.AddAutoMapper(typeof(MapperProfile));
-builder.Services.AddScoped<ILogsViewerSvc, LogsViewerSvc>();
-builder.Services.Configure<LogsContextConfiguration>(config.GetSection("MongoDbContext").GetSection("LogsCollection"));
+builder.Services.AddScoped<IManufacturersSearchSvc, ManufacturersSearchSvc>();
+builder.Services.Configure<NhtsaApiConfig>(builder.Configuration.GetSection("NHTSA"));
+
+builder.Services.Configure<RedisCacheConfig>(config.GetSection("DistributedCache").GetSection("Redis"));
+builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(config["DistributedCache:Redis:ConnectionString"]));
+builder.Services.AddScoped<ICacheRepository, CacheRepository>();
 
 // AUTH SECTION BELOW
 builder.Services.AddAuthentication(options =>
@@ -33,15 +37,16 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy(AccountsPolicies.ElevatedRights, policy =>
+    options.AddPolicy(AccountsPolicies.DefaultRights, policy =>
     {
         policy.RequireAuthenticatedUser();
-        policy.RequireRole(AccountsRoles.Administrator);
+        policy.RequireRole(AccountsRoles.DefaultUser, AccountsRoles.Administrator);
     });
 });
 // AUTH SECTION ABOVE
 
 builder.Services.AddControllers();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -52,12 +57,10 @@ builder.Host.UseSerilog((context, config) =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseDeveloperExceptionPage();
 }
 
 app.UseAuthentication();
@@ -67,6 +70,6 @@ app.UseMiddleware<GlobalExceptionsHandler>();
 
 app.MapControllers();
 
-Log.Information("LogsViewer service successfully started");
+Log.Information("Vehicles Search Service successfully started");
 
 app.Run();

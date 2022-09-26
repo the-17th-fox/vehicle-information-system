@@ -35,7 +35,7 @@ namespace Common.Utilities
             }
         }
 
-        public PagedList(List<T> items, int itemsCount, int pageNumber, int pageSize)
+        private PagedList(List<T> items, int itemsCount, int pageNumber, int pageSize)
         {
             TotalPages = (int)Math.Ceiling(itemsCount / (double)pageSize);
             CurrentPage = pageNumber;

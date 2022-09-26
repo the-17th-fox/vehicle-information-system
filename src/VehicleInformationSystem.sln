@@ -9,9 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AccountsService", "Accounts
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AccountsServiceTests", "AccountsServiceTests\AccountsServiceTests.csproj", "{5EC2B0D1-CCD3-4966-AD57-8C83C7EE5CE2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{E26370A4-D021-4C57-A4EC-C3C5BE44E109}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csproj", "{E26370A4-D021-4C57-A4EC-C3C5BE44E109}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogsViewerService", "LogsViewerService\LogsViewerService.csproj", "{72CF0D64-44BB-4566-82B8-4EE2E6D7A023}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogsViewerService", "LogsViewerService\LogsViewerService.csproj", "{72CF0D64-44BB-4566-82B8-4EE2E6D7A023}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VehiclesSearchService", "VehiclesSearchService\VehiclesSearchService.csproj", "{E0728A1C-18D6-4005-B707-6E846576ECC9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{72CF0D64-44BB-4566-82B8-4EE2E6D7A023}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72CF0D64-44BB-4566-82B8-4EE2E6D7A023}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72CF0D64-44BB-4566-82B8-4EE2E6D7A023}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0728A1C-18D6-4005-B707-6E846576ECC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0728A1C-18D6-4005-B707-6E846576ECC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0728A1C-18D6-4005-B707-6E846576ECC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0728A1C-18D6-4005-B707-6E846576ECC9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
